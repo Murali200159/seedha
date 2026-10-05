@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, ScrollView, TextInput, TouchableOpacity, Modal, StyleSheet } from 'react-native';
 import { ChevronLeft, User, Mail, MapPin, Camera } from 'lucide-react-native';
 import { useApp } from '../../context/AppContext';
+import colors from '../../theme/colors';
 
 const cities = ['Hyderabad', 'Vizag', 'Vijayawada', 'Bengaluru', 'Chennai', 'Mumbai', 'Pune', 'Delhi'];
 
@@ -25,7 +26,7 @@ export default function ProfileSetupScreen() {
     <View style={styles.container}>
       <View style={styles.topSection}>
         <TouchableOpacity onPress={pop} style={styles.backCircle} activeOpacity={0.8}>
-          <ChevronLeft size={20} color="#111827" strokeWidth={2.5} />
+          <ChevronLeft size={20} color={colors.primary} strokeWidth={2.5} />
         </TouchableOpacity>
 
         <Text style={styles.stepTag}>STEP 1 OF 3</Text>
@@ -38,9 +39,9 @@ export default function ProfileSetupScreen() {
           {/* Avatar Icon */}
           <View style={styles.avatarCenter}>
             <View style={styles.avatarCircle}>
-              <User size={32} color="#2260FF" />
+              <User size={32} color={colors.primary} />
               <View style={styles.cameraCircle}>
-                <Camera size={12} color="white" />
+                <Camera size={12} color={colors.textWhite} />
               </View>
             </View>
           </View>
@@ -48,11 +49,11 @@ export default function ProfileSetupScreen() {
           {/* Full Name */}
           <Text style={styles.inputLabel}>Full Name *</Text>
           <View style={styles.inputRow}>
-            <User size={16} color="#9CA3AF" />
+            <User size={16} color={colors.textMuted} />
             <TextInput
               style={styles.textInput}
               placeholder="Enter your full name"
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={colors.textMuted}
               value={name}
               onChangeText={setName}
             />
@@ -61,11 +62,11 @@ export default function ProfileSetupScreen() {
           {/* Email */}
           <Text style={styles.inputLabel}>Email Address (optional)</Text>
           <View style={styles.inputRow}>
-            <Mail size={16} color="#9CA3AF" />
+            <Mail size={16} color={colors.textMuted} />
             <TextInput
               style={styles.textInput}
               placeholder="Enter email address"
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={colors.textMuted}
               keyboardType="email-address"
               value={email}
               onChangeText={setEmail}
@@ -79,7 +80,7 @@ export default function ProfileSetupScreen() {
             style={styles.inputRow}
             activeOpacity={0.8}
           >
-            <MapPin size={16} color={city ? '#2260FF' : '#9CA3AF'} />
+            <MapPin size={16} color={city ? colors.primary : colors.textMuted} />
             <Text style={[styles.selectText, city ? styles.selectedText : null]}>
               {city || 'Select your city'}
             </Text>
@@ -129,10 +130,10 @@ export default function ProfileSetupScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
   },
   topSection: {
-    backgroundColor: '#F8F9FF',
+    backgroundColor: colors.background,
     paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: 24,
@@ -141,7 +142,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 1,
@@ -150,18 +151,18 @@ const styles = StyleSheet.create({
   stepTag: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#2260FF',
+    color: colors.secondary,
     letterSpacing: 0.5,
     marginBottom: 4,
   },
   mainTitle: {
     fontSize: 26,
     fontWeight: '800',
-    color: '#111827',
+    color: colors.primary,
   },
   subTitle: {
     fontSize: 13,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginTop: 4,
   },
   scrollArea: {
@@ -180,7 +181,7 @@ const styles = StyleSheet.create({
     width: 70,
     height: 70,
     borderRadius: 35,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: colors.secondaryBg,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
@@ -192,16 +193,16 @@ const styles = StyleSheet.create({
     width: 22,
     height: 22,
     borderRadius: 11,
-    backgroundColor: '#2260FF',
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: '#FFFFFF',
+    borderColor: colors.surface,
   },
   inputLabel: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginBottom: 6,
     marginTop: 10,
   },
@@ -209,41 +210,46 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1.5,
-    borderColor: '#E5E7EB',
+    borderColor: colors.tertiary,
     borderRadius: 16,
     height: 48,
     paddingHorizontal: 14,
+    backgroundColor: colors.surface,
   },
   textInput: {
     flex: 1,
     fontSize: 14,
-    color: '#111827',
+    color: colors.primary,
     marginLeft: 10,
+    borderWidth: 0,
+    outlineWidth: 0,
+    ...( { outlineStyle: 'none' } as any ),
   },
   selectText: {
     flex: 1,
     fontSize: 14,
-    color: '#9CA3AF',
+    color: colors.textMuted,
     marginLeft: 10,
   },
   selectedText: {
-    color: '#111827',
+    color: colors.primary,
   },
   continueButton: {
     height: 50,
     borderRadius: 16,
-    backgroundColor: '#2260FF',
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 24,
   },
   disabledButton: {
-    backgroundColor: '#C7D5FF',
+    backgroundColor: colors.tertiaryDark,
+    opacity: 0.5,
   },
   continueButtonText: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.textWhite,
   },
   skipButton: {
     marginTop: 14,
@@ -252,15 +258,15 @@ const styles = StyleSheet.create({
   skipText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    backgroundColor: colors.modalOverlay,
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 20,
@@ -269,14 +275,14 @@ const styles = StyleSheet.create({
     width: 40,
     height: 4,
     borderRadius: 2,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: colors.tertiary,
     alignSelf: 'center',
     marginBottom: 14,
   },
   modalTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.primary,
     marginBottom: 12,
   },
   cityRow: {
@@ -284,17 +290,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     borderRadius: 12,
     marginBottom: 6,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: colors.surfaceSoft,
   },
   selectedCityRow: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: colors.secondaryBg,
   },
   cityName: {
     fontSize: 14,
-    color: '#111827',
+    color: colors.primary,
   },
   selectedCityName: {
     fontWeight: '700',
-    color: '#2260FF',
+    color: colors.primary,
   },
 });

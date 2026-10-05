@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, ScrollView, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { ChevronLeft, Search, Clock, MapPin, TrendingUp, X } from 'lucide-react-native';
 import { useApp } from '../context/AppContext';
+import { colors } from '../theme/colors';
 import { properties } from '../data/properties';
 import PropertyCard from '../components/PropertyCard';
 
@@ -46,21 +47,21 @@ export default function SearchScreen() {
       {/* Search Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={pop} style={styles.backCircle} activeOpacity={0.8}>
-          <ChevronLeft size={20} color="#111827" strokeWidth={2.5} />
+          <ChevronLeft size={20} color={colors.textPrimary} strokeWidth={2.5} />
         </TouchableOpacity>
         <View style={styles.searchBar}>
-          <Search size={16} color="#9CA3AF" />
+          <Search size={16} color={colors.textMuted} />
           <TextInput
             autoFocus
             style={styles.searchInput}
             placeholder="Search location, project, property..."
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={colors.textMuted}
             value={query}
             onChangeText={setQuery}
           />
           {query ? (
             <TouchableOpacity onPress={() => setQuery('')}>
-              <X size={16} color="#9CA3AF" />
+              <X size={16} color={colors.textMuted} />
             </TouchableOpacity>
           ) : null}
         </View>
@@ -77,7 +78,7 @@ export default function SearchScreen() {
                   onPress={() => push({ name: 'propertyListing', params: { type: 'buy', title: s } })}
                   style={styles.suggestionRow}
                 >
-                  <MapPin size={15} color="#9CA3AF" />
+                  <MapPin size={15} color={colors.textMuted} />
                   <Text style={styles.suggestionText}>{s}</Text>
                 </TouchableOpacity>
               ))}
@@ -112,7 +113,7 @@ export default function SearchScreen() {
                   style={styles.recentRow}
                   activeOpacity={0.8}
                 >
-                  <Clock size={15} color="#9CA3AF" />
+                  <Clock size={15} color={colors.textMuted} />
                   <Text style={styles.recentText}>{s}</Text>
                 </TouchableOpacity>
               ))}
@@ -120,7 +121,7 @@ export default function SearchScreen() {
 
             {/* Popular Locations */}
             <View style={[styles.rowCenter, { marginTop: 20, marginBottom: 10 }]}>
-              <TrendingUp size={14} color="#2260FF" />
+              <TrendingUp size={14} color={colors.primary} />
               <Text style={[styles.sectionHeader, { marginBottom: 0, marginLeft: 6 }]}>Popular Locations</Text>
             </View>
             <View style={styles.popularList}>
@@ -132,7 +133,7 @@ export default function SearchScreen() {
                   activeOpacity={0.8}
                 >
                   <View style={styles.locationIconBox}>
-                    <MapPin size={14} color="#2260FF" />
+                    <MapPin size={14} color={colors.primary} />
                   </View>
                   <View style={styles.locationTextCol}>
                     <Text style={styles.locationTitle}>{loc.name}</Text>
@@ -151,7 +152,7 @@ export default function SearchScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ECEEF5',
+    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',
@@ -159,12 +160,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 10,
+    backgroundColor: colors.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
   backCircle: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.tertiaryBg,
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 1,
@@ -173,7 +177,7 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.tertiaryBg,
     borderRadius: 14,
     paddingHorizontal: 12,
     height: 42,
@@ -183,7 +187,7 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 13,
-    color: '#111827',
+    color: colors.textPrimary,
     marginLeft: 8,
   },
   scrollArea: {
@@ -194,9 +198,11 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   cardContainer: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 16,
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: colors.border,
     elevation: 2,
   },
   suggestionRow: {
@@ -205,17 +211,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: colors.border,
   },
   suggestionText: {
     fontSize: 13,
-    color: '#111827',
+    color: colors.textPrimary,
     marginLeft: 10,
   },
   sectionHeader: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#6B7280',
+    color: colors.textSecondary,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginBottom: 10,
@@ -231,7 +237,7 @@ const styles = StyleSheet.create({
   clearText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#2260FF',
+    color: colors.primary,
   },
   recentList: {
     gap: 8,
@@ -239,16 +245,18 @@ const styles = StyleSheet.create({
   recentRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
     elevation: 1,
   },
   recentText: {
     fontSize: 13,
     fontWeight: '500',
-    color: '#111827',
+    color: colors.textPrimary,
     marginLeft: 10,
   },
   rowCenter: {
@@ -261,16 +269,18 @@ const styles = StyleSheet.create({
   locationRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 12,
     padding: 10,
+    borderWidth: 1,
+    borderColor: colors.border,
     elevation: 1,
   },
   locationIconBox: {
     width: 32,
     height: 32,
     borderRadius: 10,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: colors.tertiaryBg,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -280,11 +290,11 @@ const styles = StyleSheet.create({
   locationTitle: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#111827',
+    color: colors.textPrimary,
   },
   locationSub: {
     fontSize: 11,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginTop: 1,
   },
 });

@@ -2,12 +2,13 @@ import React from 'react';
 import { View, Text, ScrollView, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { Plus, Eye, MessageCircle, Calendar, Building2, MapPin } from 'lucide-react-native';
 import { useApp } from '../context/AppContext';
+import { colors } from '../theme/colors';
 import { properties } from '../data/properties';
 
 const statusConfig: Record<string, { label: string; color: string; bg: string }> = {
-  published: { label: 'Published', color: '#16A34A', bg: '#DCFCE7' },
-  review: { label: 'Under Review', color: '#D97706', bg: '#FEF3C7' },
-  draft: { label: 'Draft', color: '#6B7280', bg: '#F3F4F6' },
+  published: { label: 'Published', color: colors.secondary, bg: colors.tertiaryBg },
+  review: { label: 'Under Review', color: colors.accent, bg: colors.tertiaryBg },
+  draft: { label: 'Draft', color: colors.textSecondary, bg: colors.tertiaryBg },
 };
 
 const myListings = [
@@ -32,7 +33,7 @@ export default function MyPropertyScreen() {
           style={styles.addButton}
           activeOpacity={0.8}
         >
-          <Plus size={16} color="white" />
+          <Plus size={16} color={colors.textWhite} />
           <Text style={styles.addButtonText}>Add</Text>
         </TouchableOpacity>
       </View>
@@ -42,24 +43,24 @@ export default function MyPropertyScreen() {
         <View style={styles.sectionPadding}>
           <View style={styles.statsGrid}>
             <View style={styles.statCard}>
-              <View style={[styles.iconBox, { backgroundColor: '#EBF0FF' }]}>
-                <Building2 size={16} color="#2260FF" />
+              <View style={[styles.iconBox, { backgroundColor: colors.tertiaryBg }]}>
+                <Building2 size={16} color={colors.primary} />
               </View>
               <Text style={styles.statVal}>1</Text>
               <Text style={styles.statSub}>Active Listings</Text>
             </View>
 
             <View style={styles.statCard}>
-              <View style={[styles.iconBox, { backgroundColor: '#DCFCE7' }]}>
-                <MessageCircle size={16} color="#16A34A" />
+              <View style={[styles.iconBox, { backgroundColor: colors.tertiaryBg }]}>
+                <MessageCircle size={16} color={colors.secondary} />
               </View>
               <Text style={styles.statVal}>12</Text>
               <Text style={styles.statSub}>Total Leads</Text>
             </View>
 
             <View style={styles.statCard}>
-              <View style={[styles.iconBox, { backgroundColor: '#FEF3C7' }]}>
-                <Calendar size={16} color="#D97706" />
+              <View style={[styles.iconBox, { backgroundColor: colors.tertiaryBg }]}>
+                <Calendar size={16} color={colors.accent} />
               </View>
               <Text style={styles.statVal}>5</Text>
               <Text style={styles.statSub}>Visits Booked</Text>
@@ -85,21 +86,21 @@ export default function MyPropertyScreen() {
                         </View>
                       </View>
                       <View style={styles.locationRow}>
-                        <MapPin size={10} color="#9CA3AF" />
+                        <MapPin size={10} color={colors.textMuted} />
                         <Text style={styles.locationText}>{listing.location}</Text>
                       </View>
                       <Text style={styles.listingPrice}>{listing.priceLabel}</Text>
                       <View style={styles.metaRow}>
                         <View style={styles.metaItem}>
-                          <Eye size={10} color="#9CA3AF" />
+                          <Eye size={10} color={colors.textMuted} />
                           <Text style={styles.metaText}>{listing.views}</Text>
                         </View>
                         <View style={styles.metaItem}>
-                          <MessageCircle size={10} color="#9CA3AF" />
+                          <MessageCircle size={10} color={colors.textMuted} />
                           <Text style={styles.metaText}>{listing.leads}</Text>
                         </View>
                         <View style={styles.metaItem}>
-                          <Calendar size={10} color="#9CA3AF" />
+                          <Calendar size={10} color={colors.textMuted} />
                           <Text style={styles.metaText}>{listing.visits}</Text>
                         </View>
                       </View>
@@ -118,7 +119,7 @@ export default function MyPropertyScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ECEEF5',
+    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',
@@ -127,21 +128,24 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 14,
     paddingBottom: 10,
+    backgroundColor: colors.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
   pageTitle: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#111827',
+    color: colors.textPrimary,
   },
   pageSub: {
     fontSize: 12,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginTop: 2,
   },
   addButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#2260FF',
+    backgroundColor: colors.primary,
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 14,
@@ -149,7 +153,7 @@ const styles = StyleSheet.create({
   addButtonText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: colors.textWhite,
     marginLeft: 4,
   },
   scrollArea: {
@@ -165,10 +169,12 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 10,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.border,
     elevation: 1,
   },
   iconBox: {
@@ -182,27 +188,29 @@ const styles = StyleSheet.create({
   statVal: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#111827',
+    color: colors.textPrimary,
   },
   statSub: {
     fontSize: 9,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginTop: 2,
     textAlign: 'center',
   },
   sectionTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.textPrimary,
     marginBottom: 10,
   },
   listingsWrap: {
     gap: 10,
   },
   listingCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 16,
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: colors.border,
     elevation: 2,
   },
   listingRow: {
@@ -228,7 +236,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 13,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.textPrimary,
   },
   statusChip: {
     paddingHorizontal: 6,
@@ -247,13 +255,13 @@ const styles = StyleSheet.create({
   },
   locationText: {
     fontSize: 10,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginLeft: 2,
   },
   listingPrice: {
     fontSize: 13,
     fontWeight: '800',
-    color: '#2260FF',
+    color: colors.primary,
     marginTop: 4,
   },
   metaRow: {
@@ -267,7 +275,7 @@ const styles = StyleSheet.create({
   },
   metaText: {
     fontSize: 10,
-    color: '#6B7280',
+    color: colors.textMuted,
     marginLeft: 3,
   },
 });

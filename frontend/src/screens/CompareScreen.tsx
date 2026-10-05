@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, ScrollView, Image, TouchableOpacity, Modal, StyleSheet } from 'react-native';
 import { ShieldCheck, CheckCircle2, XCircle, ChevronRight, BarChart3, Check } from 'lucide-react-native';
 import { useApp } from '../context/AppContext';
+import { colors } from '../theme/colors';
 import { properties } from '../data/properties';
 import TopBar from '../components/TopBar';
 import type { Property } from '../types';
@@ -81,7 +82,7 @@ export default function CompareScreen() {
               </TouchableOpacity>
             ) : (
               <TouchableOpacity onPress={() => setShowPicker(true)} style={styles.emptyAddCard} activeOpacity={0.8}>
-                <BarChart3 size={24} color="#2260FF" />
+                <BarChart3 size={24} color={colors.primary} />
                 <Text style={styles.addText}>Tap to add property</Text>
               </TouchableOpacity>
             )}
@@ -116,10 +117,10 @@ export default function CompareScreen() {
                   <View key={amenity} style={styles.tableRow}>
                     <Text style={styles.rowLabel}>{amenity}</Text>
                     <View style={styles.iconCell}>
-                      {hasA ? <CheckCircle2 size={16} color="#16A34A" /> : <XCircle size={16} color="#D1D5DB" />}
+                      {hasA ? <CheckCircle2 size={16} color={colors.secondary} /> : <XCircle size={16} color={colors.tertiary} />}
                     </View>
                     <View style={styles.iconCell}>
-                      {hasB ? <CheckCircle2 size={16} color="#16A34A" /> : <XCircle size={16} color="#D1D5DB" />}
+                      {hasB ? <CheckCircle2 size={16} color={colors.secondary} /> : <XCircle size={16} color={colors.tertiary} />}
                     </View>
                   </View>
                 );
@@ -141,7 +142,7 @@ export default function CompareScreen() {
                   <Text style={styles.pickTitle} numberOfLines={1}>{p.title}</Text>
                   <Text style={styles.pickSub}>{p.location} · {p.priceLabel}</Text>
                 </View>
-                <ChevronRight size={16} color="#9CA3AF" />
+                <ChevronRight size={16} color={colors.textMuted} />
               </TouchableOpacity>
             ))}
           </View>
@@ -166,7 +167,7 @@ export default function CompareScreen() {
                     <Text style={styles.pickTitle} numberOfLines={1}>{p.title}</Text>
                     <Text style={styles.pickSub}>{p.location} · {p.priceLabel}</Text>
                   </View>
-                  {propertyB?.id === p.id && <Check size={16} color="#2260FF" />}
+                  {propertyB?.id === p.id && <Check size={16} color={colors.primary} />}
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -180,7 +181,7 @@ export default function CompareScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ECEEF5',
+    backgroundColor: colors.background,
   },
   scrollArea: {
     flex: 1,
@@ -210,7 +211,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.35)',
+    backgroundColor: colors.overlayLight,
   },
   cardInfo: {
     position: 'absolute',
@@ -221,18 +222,18 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.textWhite,
   },
   cardLocation: {
     fontSize: 9,
-    color: 'rgba(255,255,255,0.8)',
+    color: 'rgba(255,255,255,0.85)',
     marginTop: 2,
   },
   badgeA: {
     position: 'absolute',
     top: 6,
     left: 6,
-    backgroundColor: '#2260FF',
+    backgroundColor: colors.primary,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
@@ -240,7 +241,7 @@ const styles = StyleSheet.create({
   badgeAText: {
     fontSize: 9,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.textWhite,
   },
   changeBadge: {
     position: 'absolute',
@@ -254,14 +255,14 @@ const styles = StyleSheet.create({
   changeText: {
     fontSize: 9,
     fontWeight: '700',
-    color: '#2260FF',
+    color: colors.primary,
   },
   emptyAddCard: {
     height: 110,
     borderRadius: 16,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: colors.surface,
     borderWidth: 1.5,
-    borderColor: '#BFDBFE',
+    borderColor: colors.tertiary,
     borderStyle: 'dashed',
     alignItems: 'center',
     justifyContent: 'center',
@@ -269,16 +270,18 @@ const styles = StyleSheet.create({
   addText: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#2260FF',
+    color: colors.primary,
     marginTop: 6,
   },
   tableSection: {
     marginBottom: 24,
   },
   tableCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 16,
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: colors.border,
     elevation: 2,
     marginBottom: 16,
   },
@@ -287,25 +290,25 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: colors.border,
     alignItems: 'center',
   },
   diffRow: {
-    backgroundColor: '#FFFBEB',
+    backgroundColor: colors.tertiaryBg,
   },
   rowLabel: {
     flex: 1.2,
     fontSize: 11,
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   rowVal: {
     flex: 1,
     fontSize: 11,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.textPrimary,
   },
   highlightVal: {
-    color: '#2260FF',
+    color: colors.primary,
   },
   iconCell: {
     flex: 1,
@@ -313,7 +316,7 @@ const styles = StyleSheet.create({
   sectionHeading: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.textPrimary,
     marginBottom: 8,
   },
   pickSection: {
@@ -323,15 +326,17 @@ const styles = StyleSheet.create({
   pickHeading: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.textPrimary,
     marginBottom: 6,
   },
   pickRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 14,
     padding: 10,
+    borderWidth: 1,
+    borderColor: colors.border,
     elevation: 1,
   },
   pickImage: {
@@ -346,20 +351,20 @@ const styles = StyleSheet.create({
   pickTitle: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.textPrimary,
   },
   pickSub: {
     fontSize: 11,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginTop: 2,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    backgroundColor: colors.modalOverlay,
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     maxHeight: '75%',
@@ -369,14 +374,14 @@ const styles = StyleSheet.create({
     width: 40,
     height: 4,
     borderRadius: 2,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: colors.border,
     alignSelf: 'center',
     marginBottom: 14,
   },
   modalTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.textPrimary,
     marginBottom: 12,
   },
   modalScroll: {
@@ -388,12 +393,12 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 12,
     marginBottom: 6,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: colors.background,
   },
   modalSelectedRow: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: colors.tertiaryBg,
     borderWidth: 1,
-    borderColor: '#2260FF',
+    borderColor: colors.primary,
   },
   modalPickImage: {
     width: 44,

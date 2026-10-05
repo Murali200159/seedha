@@ -4,6 +4,7 @@ import { Search, MapPin, Clock, TrendingUp, Heart, SlidersHorizontal, Map, Chevr
 import { useApp } from '../context/AppContext';
 import { properties } from '../data/properties';
 import PropertyCard from '../components/PropertyCard';
+import colors from '../theme/colors';
 
 const tabs = ['All', 'Buy', 'Rent', 'Commercial', 'New Projects'];
 const popularLocations = [
@@ -53,18 +54,18 @@ export default function ExploreScreen() {
             style={styles.filterCircle}
             activeOpacity={0.8}
           >
-            <SlidersHorizontal size={16} color="#374151" />
+            <SlidersHorizontal size={16} color={colors.primary} />
           </TouchableOpacity>
         </View>
 
         {/* Search */}
         <View style={styles.searchWrapper}>
           <View style={styles.searchBar}>
-            <Search size={16} color="#9CA3AF" />
+            <Search size={16} color={colors.textMuted} />
             <TextInput
               style={styles.searchInput}
               placeholder="Search location, project, property..."
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={colors.textMuted}
               value={query}
               onChangeText={text => { setQuery(text); setShowSuggestions(true); }}
               onFocus={() => setShowSuggestions(true)}
@@ -90,7 +91,7 @@ export default function ExploreScreen() {
                   onPress={() => { setQuery(s); setShowSuggestions(false); }}
                   style={styles.suggestionItem}
                 >
-                  {query.length > 1 ? <MapPin size={14} color="#9CA3AF" /> : <Clock size={14} color="#9CA3AF" />}
+                  {query.length > 1 ? <MapPin size={14} color={colors.textMuted} /> : <Clock size={14} color={colors.textMuted} />}
                   <Text style={styles.suggestionItemText}>{s}</Text>
                 </TouchableOpacity>
               ))}
@@ -113,7 +114,7 @@ export default function ExploreScreen() {
             />
             <View style={styles.mapOverlay} />
             <View style={styles.mapButtonContent}>
-              <Map size={15} color="#2260FF" />
+              <Map size={15} color={colors.primary} />
               <Text style={styles.mapButtonText}>View Properties on Map</Text>
             </View>
           </TouchableOpacity>
@@ -124,12 +125,12 @@ export default function ExploreScreen() {
           <View style={styles.savedSection}>
             <View style={styles.savedHeader}>
               <View style={styles.rowCenter}>
-                <Heart size={14} color="#EF4444" fill="#EF4444" />
+                <Heart size={14} color={colors.accent} fill={colors.accent} />
                 <Text style={styles.sectionTitle}>Saved Properties</Text>
               </View>
               <TouchableOpacity style={styles.rowCenter}>
                 <Text style={styles.seeAllText}>See All</Text>
-                <ChevronRight size={13} color="#2260FF" strokeWidth={2.5} />
+                <ChevronRight size={13} color={colors.secondary} strokeWidth={2.5} />
               </TouchableOpacity>
             </View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.savedScroll}>
@@ -155,7 +156,7 @@ export default function ExploreScreen() {
         {/* Popular Locations */}
         <View style={styles.sectionPadding}>
           <View style={styles.rowCenterMargin}>
-            <TrendingUp size={14} color="#2260FF" />
+            <TrendingUp size={14} color={colors.secondary} />
             <Text style={styles.sectionTitle}>Popular Locations</Text>
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.popularScroll}>
@@ -167,7 +168,7 @@ export default function ExploreScreen() {
                 activeOpacity={0.8}
               >
                 <View style={styles.rowCenter}>
-                  <MapPin size={11} color="#2260FF" />
+                  <MapPin size={11} color={colors.secondary} />
                   <Text style={styles.locationName}>{loc.name}</Text>
                 </View>
                 <Text style={styles.locationCount}>{loc.count}</Text>
@@ -189,7 +190,7 @@ export default function ExploreScreen() {
                 <Text style={styles.projectsSub}>10+ new launches this month</Text>
               </View>
               <View style={styles.projectsBadge}>
-                <Sparkles size={12} color="white" />
+                <Sparkles size={12} color={colors.textWhite} />
                 <Text style={styles.projectsBadgeText}>Explore</Text>
               </View>
             </View>
@@ -219,7 +220,7 @@ export default function ExploreScreen() {
         {filtered.length === 0 ? (
           <View style={styles.emptyContainer}>
             <View style={styles.emptyCircle}>
-              <Search size={28} color="#9CA3AF" />
+              <Search size={28} color={colors.textMuted} />
             </View>
             <Text style={styles.emptyTitle}>No properties found</Text>
             <Text style={styles.emptySub}>Try changing your search or filters</Text>
@@ -248,13 +249,13 @@ export default function ExploreScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ECEEF5',
+    backgroundColor: colors.background,
   },
   header: {
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 10,
-    backgroundColor: '#ECEEF5',
+    backgroundColor: colors.background,
     zIndex: 10,
   },
   headerTitleRow: {
@@ -266,16 +267,18 @@ const styles = StyleSheet.create({
   pageTitle: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#111827',
+    color: colors.primary,
   },
   filterCircle: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 2,
+    borderWidth: 1,
+    borderColor: colors.tertiary,
   },
   searchWrapper: {
     position: 'relative',
@@ -283,16 +286,18 @@ const styles = StyleSheet.create({
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 16,
     paddingHorizontal: 12,
     height: 44,
     elevation: 1,
+    borderWidth: 1,
+    borderColor: colors.tertiary,
   },
   searchInput: {
     flex: 1,
     fontSize: 13,
-    color: '#111827',
+    color: colors.primary,
     marginLeft: 8,
   },
   clearButton: {
@@ -300,18 +305,20 @@ const styles = StyleSheet.create({
   },
   clearText: {
     fontSize: 12,
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   suggestionsBox: {
     position: 'absolute',
     top: 48,
     left: 0,
     right: 0,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 16,
     paddingVertical: 6,
     elevation: 6,
     zIndex: 20,
+    borderWidth: 1,
+    borderColor: colors.tertiary,
   },
   suggestionHeader: {
     paddingHorizontal: 14,
@@ -320,7 +327,7 @@ const styles = StyleSheet.create({
   suggestionHeaderText: {
     fontSize: 10,
     fontWeight: '600',
-    color: '#6B7280',
+    color: colors.textSecondary,
     textTransform: 'uppercase',
   },
   suggestionItem: {
@@ -331,7 +338,7 @@ const styles = StyleSheet.create({
   },
   suggestionItemText: {
     fontSize: 13,
-    color: '#111827',
+    color: colors.primary,
     marginLeft: 10,
   },
   scrollArea: {
@@ -359,7 +366,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(5, 16, 66, 0.5)',
+    backgroundColor: colors.overlayLight,
   },
   mapButtonContent: {
     flexDirection: 'row',
@@ -372,7 +379,7 @@ const styles = StyleSheet.create({
   mapButtonText: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.primary,
     marginLeft: 6,
   },
   savedSection: {
@@ -397,13 +404,13 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.primary,
     marginLeft: 6,
   },
   seeAllText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#2260FF',
+    color: colors.secondary,
     marginRight: 2,
   },
   savedScroll: {
@@ -412,10 +419,12 @@ const styles = StyleSheet.create({
   },
   savedCard: {
     width: 150,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 14,
     overflow: 'hidden',
     elevation: 2,
+    borderWidth: 1,
+    borderColor: colors.tertiary,
   },
   savedImage: {
     width: '100%',
@@ -427,42 +436,44 @@ const styles = StyleSheet.create({
   savedTitle: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.primary,
   },
   savedLocation: {
     fontSize: 10,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginTop: 2,
   },
   savedPrice: {
     fontSize: 12,
     fontWeight: '800',
-    color: '#2260FF',
+    color: colors.primary,
     marginTop: 4,
   },
   popularScroll: {
     gap: 8,
   },
   locationChip: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 8,
     elevation: 1,
+    borderWidth: 1,
+    borderColor: colors.tertiary,
   },
   locationName: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.primary,
     marginLeft: 4,
   },
   locationCount: {
     fontSize: 10,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginTop: 2,
   },
   projectsBanner: {
-    backgroundColor: '#2260FF',
+    backgroundColor: colors.primary,
     borderRadius: 16,
     padding: 14,
   },
@@ -474,11 +485,11 @@ const styles = StyleSheet.create({
   projectsTitle: {
     fontSize: 14,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: colors.textWhite,
   },
   projectsSub: {
     fontSize: 11,
-    color: '#BFDBFE',
+    color: colors.tertiaryLight,
     marginTop: 2,
   },
   projectsBadge: {
@@ -492,7 +503,7 @@ const styles = StyleSheet.create({
   projectsBadgeText: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: colors.textWhite,
     marginLeft: 4,
   },
   tabsScroll: {
@@ -506,21 +517,23 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   activeTabPill: {
-    backgroundColor: '#2260FF',
+    backgroundColor: colors.primary,
   },
   inactiveTabPill: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     elevation: 1,
+    borderWidth: 1,
+    borderColor: colors.tertiary,
   },
   tabPillText: {
     fontSize: 12,
     fontWeight: '600',
   },
   activeTabPillText: {
-    color: '#FFFFFF',
+    color: colors.textWhite,
   },
   inactiveTabPillText: {
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   emptyContainer: {
     alignItems: 'center',
@@ -531,7 +544,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: colors.tertiaryLight,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
@@ -539,16 +552,16 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.primary,
   },
   emptySub: {
     fontSize: 13,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginTop: 4,
   },
   clearFiltersButton: {
     marginTop: 16,
-    backgroundColor: '#2260FF',
+    backgroundColor: colors.primary,
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 20,
@@ -556,7 +569,7 @@ const styles = StyleSheet.create({
   clearFiltersText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: colors.textWhite,
   },
   gridContainer: {
     flexDirection: 'row',

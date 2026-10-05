@@ -51,6 +51,7 @@ export interface ChatMessage {
 }
 
 export type ScreenName =
+  | 'splash'
   | 'onboarding'
   | 'login'
   | 'otp'

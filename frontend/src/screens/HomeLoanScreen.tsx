@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, ScrollView, TextInput, TouchableOpacity, Image, ActivityIndicator, StyleSheet } from 'react-native';
 import { ChevronLeft, CheckCircle2, TrendingUp, Building2, ChevronRight } from 'lucide-react-native';
 import { useApp } from '../context/AppContext';
+import { colors } from '../theme/colors';
 
 type Step = 'landing' | 'basic' | 'income' | 'results' | 'lenders' | 'apply';
 
@@ -36,7 +37,7 @@ export default function HomeLoanScreen() {
     return (
       <View style={styles.successContainer}>
         <View style={styles.successBadgeCircle}>
-          <CheckCircle2 size={40} color="#16A34A" />
+          <CheckCircle2 size={40} color={colors.secondary} />
         </View>
         <Text style={styles.successTitle}>Application Submitted!</Text>
         <Text style={styles.successSub}>
@@ -54,7 +55,7 @@ export default function HomeLoanScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={step === 'landing' ? pop : () => setStep('landing')} style={styles.backCircle} activeOpacity={0.8}>
-          <ChevronLeft size={20} color="#111827" strokeWidth={2.5} />
+          <ChevronLeft size={20} color={colors.textPrimary} strokeWidth={2.5} />
         </TouchableOpacity>
         <View style={styles.headerTitleCol}>
           <Text style={styles.headerTitle}>Home Loan</Text>
@@ -89,25 +90,25 @@ export default function HomeLoanScreen() {
 
             <View style={styles.optionsWrap}>
               <TouchableOpacity onPress={() => setStep('basic')} style={styles.optionCard} activeOpacity={0.8}>
-                <View style={[styles.optionIconBox, { backgroundColor: '#EBF0FF' }]}>
-                  <TrendingUp size={22} color="#2260FF" />
+                <View style={[styles.optionIconBox, { backgroundColor: colors.tertiaryBg }]}>
+                  <TrendingUp size={22} color={colors.primary} />
                 </View>
                 <View style={styles.optionTextCol}>
                   <Text style={styles.optionTitle}>Check Eligibility</Text>
                   <Text style={styles.optionSub}>2-min quick assessment</Text>
                 </View>
-                <ChevronRight size={16} color="#9CA3AF" />
+                <ChevronRight size={16} color={colors.textMuted} />
               </TouchableOpacity>
 
               <TouchableOpacity onPress={() => setStep('lenders')} style={styles.optionCard} activeOpacity={0.8}>
-                <View style={[styles.optionIconBox, { backgroundColor: '#EDE9FE' }]}>
-                  <Building2 size={22} color="#7C3AED" />
+                <View style={[styles.optionIconBox, { backgroundColor: colors.tertiaryBg }]}>
+                  <Building2 size={22} color={colors.secondary} />
                 </View>
                 <View style={styles.optionTextCol}>
                   <Text style={styles.optionTitle}>Compare Lenders</Text>
                   <Text style={styles.optionSub}>10+ banks & NBFCs</Text>
                 </View>
-                <ChevronRight size={16} color="#9CA3AF" />
+                <ChevronRight size={16} color={colors.textMuted} />
               </TouchableOpacity>
             </View>
           </View>
@@ -121,7 +122,7 @@ export default function HomeLoanScreen() {
               <TextInput
                 style={styles.textInput}
                 placeholder="Rahul Sharma"
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor={colors.textMuted}
                 value={form.name}
                 onChangeText={text => setForm(f => ({ ...f, name: text }))}
               />
@@ -131,7 +132,7 @@ export default function HomeLoanScreen() {
               <TextInput
                 style={styles.textInput}
                 placeholder="+91 98765 43210"
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor={colors.textMuted}
                 keyboardType="phone-pad"
                 value={form.phone}
                 onChangeText={text => setForm(f => ({ ...f, phone: text }))}
@@ -142,7 +143,7 @@ export default function HomeLoanScreen() {
               <TextInput
                 style={styles.textInput}
                 placeholder="80,000"
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor={colors.textMuted}
                 keyboardType="numeric"
                 value={form.income}
                 onChangeText={text => setForm(f => ({ ...f, income: text }))}
@@ -159,7 +160,7 @@ export default function HomeLoanScreen() {
               <TextInput
                 style={styles.textInput}
                 placeholder="50,00,000"
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor={colors.textMuted}
                 keyboardType="numeric"
                 value={form.loanAmount}
                 onChangeText={text => setForm(f => ({ ...f, loanAmount: text }))}
@@ -196,7 +197,7 @@ export default function HomeLoanScreen() {
             <Text style={styles.stepTitle}>Complete Application</Text>
             <View style={styles.fieldGroup}>
               <Text style={styles.inputLabel}>PAN Card Number</Text>
-              <TextInput style={styles.textInput} placeholder="ABCDE1234F" placeholderTextColor="#9CA3AF" />
+              <TextInput style={styles.textInput} placeholder="ABCDE1234F" placeholderTextColor={colors.textMuted} />
             </View>
           </View>
         )}
@@ -217,7 +218,7 @@ export default function HomeLoanScreen() {
           activeOpacity={0.9}
         >
           {loading ? (
-            <ActivityIndicator color="white" />
+            <ActivityIndicator color={colors.textWhite} />
           ) : (
             <Text style={styles.mainButtonText}>{step === 'landing' ? 'Check Eligibility' : step === 'apply' ? 'Submit Application' : 'Continue'}</Text>
           )}
@@ -230,7 +231,7 @@ export default function HomeLoanScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ECEEF5',
+    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',
@@ -238,12 +239,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 10,
+    backgroundColor: colors.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
   backCircle: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.tertiaryBg,
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 1,
@@ -254,11 +258,11 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.textPrimary,
   },
   headerSub: {
     fontSize: 11,
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   scrollArea: {
     flex: 1,
@@ -284,7 +288,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(5, 16, 66, 0.6)',
+    backgroundColor: colors.overlayMedium,
   },
   heroContent: {
     position: 'absolute',
@@ -298,11 +302,11 @@ const styles = StyleSheet.create({
   heroTitle: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: colors.textWhite,
   },
   heroSub: {
     fontSize: 12,
-    color: '#BFDBFE',
+    color: colors.tertiary,
     marginTop: 4,
   },
   statsRow: {
@@ -312,20 +316,22 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 14,
     padding: 12,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.tertiary,
     elevation: 1,
   },
   statVal: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#2260FF',
+    color: colors.primary,
   },
   statLabel: {
     fontSize: 10,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginTop: 2,
   },
   optionsWrap: {
@@ -334,9 +340,11 @@ const styles = StyleSheet.create({
   optionCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 14,
+    borderWidth: 1,
+    borderColor: colors.border,
     elevation: 1,
   },
   optionIconBox: {
@@ -353,17 +361,17 @@ const styles = StyleSheet.create({
   optionTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.textPrimary,
   },
   optionSub: {
     fontSize: 11,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginTop: 2,
   },
   stepTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.textPrimary,
     marginBottom: 12,
   },
   fieldGroup: {
@@ -372,25 +380,29 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginBottom: 6,
   },
   textInput: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 12,
     paddingHorizontal: 14,
     height: 44,
     fontSize: 14,
-    color: '#111827',
+    color: colors.textPrimary,
+    borderWidth: 1,
+    borderColor: colors.border,
     elevation: 1,
   },
   lendersList: {
     gap: 10,
   },
   lenderCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 14,
     padding: 14,
+    borderWidth: 1,
+    borderColor: colors.border,
     elevation: 1,
   },
   lenderRow: {
@@ -401,12 +413,12 @@ const styles = StyleSheet.create({
   lenderName: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.textPrimary,
   },
   lenderRate: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#2260FF',
+    color: colors.primary,
   },
   lenderMeta: {
     flexDirection: 'row',
@@ -415,10 +427,10 @@ const styles = StyleSheet.create({
   },
   lenderMetaText: {
     fontSize: 11,
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   applySmallBtn: {
-    backgroundColor: '#2260FF',
+    backgroundColor: colors.primary,
     paddingHorizontal: 14,
     paddingVertical: 6,
     borderRadius: 10,
@@ -428,38 +440,38 @@ const styles = StyleSheet.create({
   applySmallText: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: colors.textWhite,
   },
   footer: {
     padding: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
+    borderTopColor: colors.border,
   },
   mainButton: {
     height: 48,
     borderRadius: 14,
-    backgroundColor: '#2260FF',
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
   mainButtonText: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.textWhite,
   },
   successContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 24,
-    backgroundColor: '#ECEEF5',
+    backgroundColor: colors.background,
   },
   successBadgeCircle: {
     width: 70,
     height: 70,
     borderRadius: 35,
-    backgroundColor: '#DCFCE7',
+    backgroundColor: colors.tertiaryBg,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
@@ -467,12 +479,12 @@ const styles = StyleSheet.create({
   successTitle: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#111827',
+    color: colors.textPrimary,
     marginBottom: 8,
   },
   successSub: {
     fontSize: 13,
-    color: '#6B7280',
+    color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 18,
   },
@@ -481,13 +493,13 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 48,
     borderRadius: 14,
-    backgroundColor: '#2260FF',
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
   backHomeText: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.textWhite,
   },
 });

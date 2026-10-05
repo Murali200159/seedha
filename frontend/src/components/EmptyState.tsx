@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Search, Heart, Building2 } from 'lucide-react-native';
+import colors from '../theme/colors';
 
 interface Props {
   type?: 'search' | 'saved' | 'property' | 'visits' | 'generic';
@@ -25,7 +26,7 @@ export default function EmptyState({ type = 'generic', title, subtitle, ctaLabel
   return (
     <View style={styles.container}>
       <View style={styles.iconCircle}>
-        <IconComponent size={28} color="#2260FF" />
+        <IconComponent size={28} color={colors.primary} />
       </View>
       <Text style={styles.title}>{title ?? config.title}</Text>
       <Text style={styles.subtitle}>{subtitle ?? config.subtitle}</Text>
@@ -49,7 +50,7 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 20,
-    backgroundColor: '#EBF0FF',
+    backgroundColor: colors.secondaryBg,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
@@ -57,19 +58,19 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.primary,
     marginBottom: 6,
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 13,
-    color: '#6B7280',
+    color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 18,
   },
   ctaButton: {
     marginTop: 20,
-    backgroundColor: '#2260FF',
+    backgroundColor: colors.primary,
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 12,
@@ -77,6 +78,6 @@ const styles = StyleSheet.create({
   ctaText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: colors.textWhite,
   },
 });

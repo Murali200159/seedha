@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { View, Text, ScrollView, TextInput, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import { ChevronLeft, Send, Paperclip, Phone, MapPin } from 'lucide-react-native';
 import { useApp } from '../context/AppContext';
+import { colors } from '../theme/colors';
 import type { Property } from '../types';
 
 const quickReplies = [
@@ -48,7 +49,7 @@ export default function ChatScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={pop} style={styles.iconCircle} activeOpacity={0.8}>
-          <ChevronLeft size={20} color="#111827" strokeWidth={2.5} />
+          <ChevronLeft size={20} color={colors.textPrimary} strokeWidth={2.5} />
         </TouchableOpacity>
         <Image source={{ uri: property.ownerAvatar }} style={styles.ownerAvatar} />
         <View style={styles.headerTitleCol}>
@@ -56,7 +57,7 @@ export default function ChatScreen() {
           <Text style={styles.onlineStatus}>Online</Text>
         </View>
         <TouchableOpacity style={styles.iconCircle} activeOpacity={0.8}>
-          <Phone size={16} color="#374151" />
+          <Phone size={16} color={colors.secondary} />
         </TouchableOpacity>
       </View>
 
@@ -71,7 +72,7 @@ export default function ChatScreen() {
           <View style={styles.contextTextCol}>
             <Text style={styles.contextTitle} numberOfLines={1}>{property.title}</Text>
             <View style={styles.locationRow}>
-              <MapPin size={10} color="#9CA3AF" />
+              <MapPin size={10} color={colors.textMuted} />
               <Text style={styles.locationText} numberOfLines={1}>{property.location}</Text>
             </View>
             <Text style={styles.contextPrice}>{property.priceLabel}</Text>
@@ -120,12 +121,12 @@ export default function ChatScreen() {
       {/* Input Bar */}
       <View style={styles.inputBar}>
         <TouchableOpacity style={styles.paperclipButton}>
-          <Paperclip size={17} color="#6B7280" />
+          <Paperclip size={17} color={colors.secondary} />
         </TouchableOpacity>
         <TextInput
           style={styles.chatInput}
           placeholder="Type a message..."
-          placeholderTextColor="#9CA3AF"
+          placeholderTextColor={colors.textMuted}
           value={input}
           onChangeText={setInput}
           onSubmitEditing={() => send(input)}
@@ -136,7 +137,7 @@ export default function ChatScreen() {
           style={[styles.sendButton, !input.trim() ? styles.disabledSend : null]}
           activeOpacity={0.8}
         >
-          <Send size={16} color="white" />
+          <Send size={16} color={colors.textWhite} />
         </TouchableOpacity>
       </View>
     </View>
@@ -146,22 +147,24 @@ export default function ChatScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ECEEF5',
+    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 10,
     elevation: 2,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
   iconCircle: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#ECEEF5',
+    backgroundColor: colors.tertiaryBg,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -178,11 +181,11 @@ const styles = StyleSheet.create({
   ownerName: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.textPrimary,
   },
   onlineStatus: {
     fontSize: 11,
-    color: '#10B981',
+    color: colors.secondary,
     fontWeight: '500',
   },
   contextPadding: {
@@ -191,10 +194,12 @@ const styles = StyleSheet.create({
   },
   contextCard: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 12,
     padding: 8,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.tertiary,
     elevation: 1,
   },
   contextImage: {
@@ -209,7 +214,7 @@ const styles = StyleSheet.create({
   contextTitle: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.textPrimary,
   },
   locationRow: {
     flexDirection: 'row',
@@ -218,13 +223,13 @@ const styles = StyleSheet.create({
   },
   locationText: {
     fontSize: 10,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginLeft: 2,
   },
   contextPrice: {
     fontSize: 12,
     fontWeight: '800',
-    color: '#2260FF',
+    color: colors.primary,
     marginTop: 2,
   },
   messagesScroll: {
@@ -259,12 +264,14 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   userBubble: {
-    backgroundColor: '#2260FF',
+    backgroundColor: colors.primary,
     borderBottomRightRadius: 2,
   },
   ownerBubble: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderBottomLeftRadius: 2,
+    borderWidth: 1,
+    borderColor: colors.border,
     elevation: 1,
   },
   messageText: {
@@ -272,10 +279,10 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   userMessageText: {
-    color: '#FFFFFF',
+    color: colors.textWhite,
   },
   ownerMessageText: {
-    color: '#111827',
+    color: colors.textPrimary,
   },
   messageTime: {
     fontSize: 9,
@@ -286,7 +293,7 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.7)',
   },
   ownerTimeText: {
-    color: '#9CA3AF',
+    color: colors.textMuted,
   },
   quickRepliesSection: {
     paddingVertical: 6,
@@ -296,48 +303,51 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   quickReplyChip: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.tertiary,
     elevation: 1,
   },
   quickReplyText: {
     fontSize: 11,
-    color: '#6B7280',
+    color: colors.secondary,
+    fontWeight: '600',
   },
   inputBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
+    borderTopColor: colors.border,
   },
   paperclipButton: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#ECEEF5',
+    backgroundColor: colors.tertiaryBg,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 8,
   },
   chatInput: {
     flex: 1,
-    backgroundColor: '#ECEEF5',
+    backgroundColor: colors.tertiaryBg,
     borderRadius: 18,
     paddingHorizontal: 14,
     height: 38,
     fontSize: 13,
-    color: '#111827',
+    color: colors.textPrimary,
   },
   sendButton: {
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: '#2260FF',
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: 8,

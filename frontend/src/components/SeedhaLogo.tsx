@@ -2,6 +2,8 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Svg, { Path, Circle } from 'react-native-svg';
 
+import colors from '../theme/colors';
+
 interface Props {
   size?: 'sm' | 'md' | 'lg';
   light?: boolean;
@@ -28,7 +30,7 @@ export function SeedhaMark({ size = 'default' }: MarkProps) {
         />
         <Path d="M9 21v-7h6v7" fill="white" />
         <Circle cx="18" cy="18" r="5.5" fill="white" />
-        <Path d="M15.5 18l1.5 1.5 3-3" stroke="#2260FF" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        <Path d="M15.5 18l1.5 1.5 3-3" stroke={colors.primary} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
       </Svg>
     </View>
   );
@@ -37,8 +39,8 @@ export function SeedhaMark({ size = 'default' }: MarkProps) {
 export default function SeedhaLogo({ size = 'md', light = false }: Props) {
   const scales = { sm: 0.8, md: 1, lg: 1.2 };
   const scale = scales[size];
-  const textColor = light ? '#FFFFFF' : '#111827';
-  const subColor = light ? 'rgba(255,255,255,0.75)' : '#6B7280';
+  const textColor = light ? colors.textWhite : colors.primary;
+  const subColor = light ? 'rgba(255,255,255,0.75)' : colors.secondary;
 
   return (
     <View style={[styles.logoRow, { transform: [{ scale }] }]}>
@@ -53,7 +55,7 @@ export default function SeedhaLogo({ size = 'md', light = false }: Props) {
 
 const styles = StyleSheet.create({
   markContainer: {
-    backgroundColor: '#2260FF',
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },

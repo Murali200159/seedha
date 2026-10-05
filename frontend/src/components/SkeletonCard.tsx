@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
+import colors from '../theme/colors';
 
 export function SkeletonCard() {
   return (
@@ -31,13 +32,13 @@ export function SkeletonList() {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 16,
     overflow: 'hidden',
     marginBottom: 12,
   },
   skeleton: {
-    backgroundColor: '#E5E7EB',
+    backgroundColor: colors.tertiaryLight,
     borderRadius: 4,
   },
   image: {

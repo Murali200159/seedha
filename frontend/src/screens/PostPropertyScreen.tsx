@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, ScrollView, TextInput, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
 import { ChevronLeft, Home, Key, Building2, ChevronRight, Camera, Plus, CheckCircle2, Upload } from 'lucide-react-native';
 import { useApp } from '../context/AppContext';
+import { colors } from '../theme/colors';
 
 type PostMode = 'sheet' | 'sell' | 'rent' | 'commercial';
 type Step = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
@@ -9,9 +10,9 @@ type Step = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
 const steps = ['Basics', 'Location', 'Pricing', 'Amenities', 'Photos', 'Documents', 'Preview', 'Submit'];
 
 const postTypes = [
-  { id: 'sell', label: 'Sell Property', sub: 'List your property for sale', Icon: Home, color: '#2260FF', bg: '#EBF0FF' },
-  { id: 'rent', label: 'Rent Property', sub: 'Find tenants for your property', Icon: Key, color: '#7C3AED', bg: '#EDE9FE' },
-  { id: 'commercial', label: 'Commercial Property', sub: 'List offices, shops & more', Icon: Building2, color: '#D97706', bg: '#FEF3C7' },
+  { id: 'sell', label: 'Sell Property', sub: 'List your property for sale', Icon: Home, color: colors.primary, bg: colors.tertiaryBg },
+  { id: 'rent', label: 'Rent Property', sub: 'Find tenants for your property', Icon: Key, color: colors.secondary, bg: colors.tertiaryBg },
+  { id: 'commercial', label: 'Commercial Property', sub: 'List offices, shops & more', Icon: Building2, color: colors.accent, bg: colors.tertiaryBg },
 ];
 
 const amenityOptions = ['Lift', 'Security', 'Parking', 'Gym', 'Swimming Pool', 'Club House', 'Power Backup', 'CCTV', 'Garden', 'Intercom'];
@@ -36,7 +37,7 @@ export default function PostPropertyScreen() {
     return (
       <View style={styles.successContainer}>
         <View style={styles.successBadgeCircle}>
-          <CheckCircle2 size={40} color="#16A34A" />
+          <CheckCircle2 size={40} color={colors.secondary} />
         </View>
         <Text style={styles.successTitle}>Property Submitted!</Text>
         <Text style={styles.successSubtitle}>
@@ -54,7 +55,7 @@ export default function PostPropertyScreen() {
       <View style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={pop} style={styles.headerBackCircle} activeOpacity={0.8}>
-            <ChevronLeft size={20} color="#111827" strokeWidth={2.5} />
+            <ChevronLeft size={20} color={colors.textPrimary} strokeWidth={2.5} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Post Property</Text>
         </View>
@@ -75,7 +76,7 @@ export default function PostPropertyScreen() {
                   <Text style={styles.postTypeTitle}>{label}</Text>
                   <Text style={styles.postTypeSub}>{sub}</Text>
                 </View>
-                <ChevronRight size={18} color="#9CA3AF" />
+                <ChevronRight size={18} color={colors.textMuted} />
               </TouchableOpacity>
             ))}
           </View>
@@ -95,7 +96,7 @@ export default function PostPropertyScreen() {
           style={styles.headerBackCircle}
           activeOpacity={0.8}
         >
-          <ChevronLeft size={20} color="#111827" strokeWidth={2.5} />
+          <ChevronLeft size={20} color={colors.textPrimary} strokeWidth={2.5} />
         </TouchableOpacity>
         <View style={styles.headerTitleColumn}>
           <Text style={styles.headerTitle}>Post to {modeLabel}</Text>
@@ -156,7 +157,7 @@ export default function PostPropertyScreen() {
               <TextInput
                 style={styles.textInput}
                 placeholder="e.g. 1200"
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor={colors.textMuted}
                 keyboardType="numeric"
                 value={form.area}
                 onChangeText={text => setForm(f => ({ ...f, area: text }))}
@@ -173,7 +174,7 @@ export default function PostPropertyScreen() {
               <TextInput
                 style={styles.textInput}
                 placeholder="e.g. Madhapur, Kondapur"
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor={colors.textMuted}
                 value={form.locality}
                 onChangeText={text => setForm(f => ({ ...f, locality: text }))}
               />
@@ -183,7 +184,7 @@ export default function PostPropertyScreen() {
               <TextInput
                 style={styles.textInput}
                 placeholder="e.g. Vasavi Towers"
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor={colors.textMuted}
                 value={form.society}
                 onChangeText={text => setForm(f => ({ ...f, society: text }))}
               />
@@ -199,7 +200,7 @@ export default function PostPropertyScreen() {
               <TextInput
                 style={styles.textInput}
                 placeholder={mode === 'rent' ? '20,000' : '75,00,000'}
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor={colors.textMuted}
                 keyboardType="numeric"
                 value={form.price}
                 onChangeText={text => setForm(f => ({ ...f, price: text }))}
@@ -251,7 +252,7 @@ export default function PostPropertyScreen() {
           activeOpacity={0.9}
         >
           {loading ? (
-            <ActivityIndicator color="white" />
+            <ActivityIndicator color={colors.textWhite} />
           ) : (
             <Text style={styles.continueButtonText}>{step < 8 ? 'Continue' : 'Submit Property'}</Text>
           )}
@@ -264,7 +265,7 @@ export default function PostPropertyScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ECEEF5',
+    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',
@@ -272,12 +273,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 10,
+    backgroundColor: colors.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
   headerBackCircle: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.tertiaryBg,
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 1,
@@ -285,7 +289,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.textPrimary,
     marginLeft: 10,
   },
   headerTitleColumn: {
@@ -294,12 +298,12 @@ const styles = StyleSheet.create({
   },
   headerSubtitle: {
     fontSize: 11,
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   percentageText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#2260FF',
+    color: colors.primary,
   },
   progressBarWrapper: {
     paddingHorizontal: 16,
@@ -307,13 +311,13 @@ const styles = StyleSheet.create({
   },
   progressBarBackground: {
     height: 6,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: colors.tertiaryBg,
     borderRadius: 3,
     overflow: 'hidden',
   },
   progressBarFill: {
     height: '100%',
-    backgroundColor: '#2260FF',
+    backgroundColor: colors.primary,
     borderRadius: 3,
   },
   sheetBody: {
@@ -321,7 +325,7 @@ const styles = StyleSheet.create({
   },
   sheetSub: {
     fontSize: 14,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginBottom: 16,
   },
   postTypeWrap: {
@@ -330,9 +334,11 @@ const styles = StyleSheet.create({
   postTypeCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 14,
+    borderWidth: 1,
+    borderColor: colors.border,
     elevation: 2,
   },
   postTypeIconBox: {
@@ -349,11 +355,11 @@ const styles = StyleSheet.create({
   postTypeTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.textPrimary,
   },
   postTypeSub: {
     fontSize: 11,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginTop: 2,
   },
   formScroll: {
@@ -366,17 +372,17 @@ const styles = StyleSheet.create({
   stepHeading: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.textPrimary,
     marginBottom: 12,
   },
   stepSub: {
     fontSize: 13,
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   inputLabel: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginBottom: 6,
   },
   typeGrid: {
@@ -404,10 +410,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   selectedOption: {
-    backgroundColor: '#2260FF',
+    backgroundColor: colors.primary,
   },
   unselectedOption: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.tertiary,
     elevation: 1,
   },
   optionText: {
@@ -415,18 +423,20 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   selectedOptionText: {
-    color: '#FFFFFF',
+    color: colors.textWhite,
   },
   unselectedOptionText: {
-    color: '#374151',
+    color: colors.textPrimary,
   },
   textInput: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 12,
     paddingHorizontal: 14,
     height: 46,
     fontSize: 14,
-    color: '#111827',
+    color: colors.textPrimary,
+    borderWidth: 1,
+    borderColor: colors.border,
     elevation: 1,
   },
   amenityWrap: {
@@ -441,34 +451,34 @@ const styles = StyleSheet.create({
   },
   footerContainer: {
     padding: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
+    borderTopColor: colors.border,
   },
   continueButton: {
     height: 48,
     borderRadius: 14,
-    backgroundColor: '#2260FF',
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
   continueButtonText: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.textWhite,
   },
   successContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 24,
-    backgroundColor: '#ECEEF5',
+    backgroundColor: colors.background,
   },
   successBadgeCircle: {
     width: 70,
     height: 70,
     borderRadius: 35,
-    backgroundColor: '#DCFCE7',
+    backgroundColor: colors.tertiaryBg,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
@@ -476,12 +486,12 @@ const styles = StyleSheet.create({
   successTitle: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#111827',
+    color: colors.textPrimary,
     marginBottom: 8,
   },
   successSubtitle: {
     fontSize: 13,
-    color: '#6B7280',
+    color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 18,
   },
@@ -490,13 +500,13 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 48,
     borderRadius: 14,
-    backgroundColor: '#2260FF',
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
   backHomeButtonText: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.textWhite,
   },
 });

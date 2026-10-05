@@ -1,0 +1,11 @@
+{
+  "name": "seedha-properties-root",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "npm start --prefix frontend",
+    "web": "npm run web --prefix frontend",
+    "android": "npm run android --prefix frontend",
+    "ios": "npm run ios --prefix frontend"
+  }
+}

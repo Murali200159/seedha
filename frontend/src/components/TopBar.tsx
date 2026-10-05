@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { ChevronLeft } from 'lucide-react-native';
 import { useApp } from '../context/AppContext';
+import colors from '../theme/colors';
 
 interface Props {
   title?: string;
@@ -23,7 +24,7 @@ export default function TopBar({ title, subtitle, showBack = true, transparent =
           style={styles.backButton}
           activeOpacity={0.7}
         >
-          <ChevronLeft size={20} color="#111827" strokeWidth={2.5} />
+          <ChevronLeft size={20} color={colors.primary} strokeWidth={2.5} />
         </TouchableOpacity>
       )}
       <View style={styles.titleContainer}>
@@ -43,7 +44,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   appBg: {
-    backgroundColor: '#ECEEF5',
+    backgroundColor: colors.background,
   },
   transparentBg: {
     backgroundColor: 'transparent',
@@ -52,10 +53,10 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 4,
@@ -69,11 +70,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.primary,
   },
   subtitle: {
     fontSize: 12,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginTop: 1,
   },
   actionsContainer: {

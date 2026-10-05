@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Switch, StyleSheet } from 'react-native';
 import { ChevronLeft, X } from 'lucide-react-native';
 import { useApp } from '../context/AppContext';
+import { colors } from '../theme/colors';
 
 export default function FiltersScreen() {
   const { pop } = useApp();
@@ -33,7 +34,7 @@ export default function FiltersScreen() {
       <View style={styles.header}>
         <View style={styles.headerTitleRow}>
           <TouchableOpacity onPress={pop} style={styles.backCircle} activeOpacity={0.8}>
-            <ChevronLeft size={20} color="#111827" strokeWidth={2.5} />
+            <ChevronLeft size={20} color={colors.textPrimary} strokeWidth={2.5} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>
             Filters {activeCount > 0 ? `(${activeCount})` : ''}
@@ -44,7 +45,7 @@ export default function FiltersScreen() {
             onPress={() => { setBhk([]); setPropertyType([]); setFurnishing([]); setParking(null); setVerifiedOnly(false); }}
             style={styles.clearRow}
           >
-            <X size={13} color="#6B7280" />
+            <X size={13} color={colors.textSecondary} />
             <Text style={styles.clearText}>Clear All</Text>
           </TouchableOpacity>
         ) : null}
@@ -101,8 +102,8 @@ export default function FiltersScreen() {
             <Switch
               value={verifiedOnly}
               onValueChange={setVerifiedOnly}
-              trackColor={{ false: '#E5E7EB', true: '#2260FF' }}
-              thumbColor="#FFFFFF"
+              trackColor={{ false: colors.tertiary, true: colors.primary }}
+              thumbColor={colors.surface}
             />
           </View>
         </View>
@@ -124,7 +125,7 @@ export default function FiltersScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ECEEF5',
+    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',
@@ -133,6 +134,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 10,
+    backgroundColor: colors.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
   headerTitleRow: {
     flexDirection: 'row',
@@ -142,7 +146,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.tertiaryBg,
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 1,
@@ -150,7 +154,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.textPrimary,
     marginLeft: 10,
   },
   clearRow: {
@@ -160,7 +164,7 @@ const styles = StyleSheet.create({
   clearText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginLeft: 2,
   },
   scrollArea: {
@@ -173,7 +177,7 @@ const styles = StyleSheet.create({
   sectionHeading: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.textPrimary,
     marginBottom: 10,
   },
   chipWrap: {
@@ -187,10 +191,12 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   activeChip: {
-    backgroundColor: '#2260FF',
+    backgroundColor: colors.primary,
   },
   inactiveChip: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.tertiary,
     elevation: 1,
   },
   chipText: {
@@ -198,36 +204,38 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   activeChipText: {
-    color: '#FFFFFF',
+    color: colors.textWhite,
   },
   inactiveChipText: {
-    color: '#374151',
+    color: colors.textPrimary,
   },
   switchRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 14,
     padding: 14,
+    borderWidth: 1,
+    borderColor: colors.border,
     elevation: 1,
   },
   switchTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#111827',
+    color: colors.textPrimary,
   },
   switchSub: {
     fontSize: 11,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginTop: 2,
   },
   footer: {
     flexDirection: 'row',
     padding: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
+    borderTopColor: colors.border,
     gap: 10,
   },
   cancelButton: {
@@ -235,27 +243,27 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
-    backgroundColor: '#FFFFFF',
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
   },
   cancelButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   applyButton: {
     flex: 2,
     height: 48,
     borderRadius: 14,
-    backgroundColor: '#2260FF',
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
   applyButtonText: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.textWhite,
   },
 });

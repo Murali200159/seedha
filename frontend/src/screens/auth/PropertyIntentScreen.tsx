@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { ChevronLeft, Home, Key, Building2, Landmark, Check } from 'lucide-react-native';
 import { useApp } from '../../context/AppContext';
+import colors from '../../theme/colors';
 
 const intents = [
-  { id: 'buy', label: 'Buy a Property', sub: 'Apartments, villas, plots', icon: Home, color: '#2260FF', bg: '#EFF6FF' },
-  { id: 'rent', label: 'Rent a Home', sub: 'Flexible rentals across India', icon: Key, color: '#7C3AED', bg: '#F5F3FF' },
-  { id: 'commercial', label: 'Commercial Space', sub: 'Office, retail & industrial', icon: Building2, color: '#0891B2', bg: '#ECFEFF' },
-  { id: 'loan', label: 'Home Loan', sub: 'Best rates, instant approval', icon: Landmark, color: '#E11D48', bg: '#FFF1F2' },
+  { id: 'buy', label: 'Buy a Property', sub: 'Apartments, villas, plots', icon: Home, color: colors.primary, bg: colors.primaryBg },
+  { id: 'rent', label: 'Rent a Home', sub: 'Flexible rentals across India', icon: Key, color: colors.secondary, bg: colors.secondaryBg },
+  { id: 'commercial', label: 'Commercial Space', sub: 'Office, retail & industrial', icon: Building2, color: colors.accent, bg: colors.accentBg },
+  { id: 'loan', label: 'Home Loan', sub: 'Best rates, instant approval', icon: Landmark, color: colors.primary, bg: colors.tertiaryBg },
 ];
 
 export default function PropertyIntentScreen() {
@@ -31,7 +32,7 @@ export default function PropertyIntentScreen() {
     <View style={styles.container}>
       <View style={styles.topSection}>
         <TouchableOpacity onPress={() => push({ name: 'profileSetup', params })} style={styles.backCircle} activeOpacity={0.8}>
-          <ChevronLeft size={20} color="#111827" strokeWidth={2.5} />
+          <ChevronLeft size={20} color={colors.primary} strokeWidth={2.5} />
         </TouchableOpacity>
 
         <Text style={styles.stepTag}>STEP 2 OF 3</Text>
@@ -53,11 +54,11 @@ export default function PropertyIntentScreen() {
                   activeOpacity={0.8}
                 >
                   <View style={styles.cardHeader}>
-                    <View style={[styles.iconBox, { backgroundColor: active ? item.color : '#E5E7EB' }]}>
-                      <Icon size={20} color={active ? 'white' : '#6B7280'} />
+                    <View style={[styles.iconBox, { backgroundColor: active ? item.color : colors.tertiaryLight }]}>
+                      <Icon size={20} color={active ? colors.textWhite : colors.textMuted} />
                     </View>
                     <View style={[styles.checkCircle, active ? { backgroundColor: item.color } : null]}>
-                      {active && <Check size={10} color="white" strokeWidth={3} />}
+                      {active && <Check size={10} color={colors.textWhite} strokeWidth={3} />}
                     </View>
                   </View>
                   <Text style={styles.intentTitle}>{item.label}</Text>
@@ -85,10 +86,10 @@ export default function PropertyIntentScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
   },
   topSection: {
-    backgroundColor: '#F8F9FF',
+    backgroundColor: colors.background,
     paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: 24,
@@ -97,7 +98,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 1,
@@ -106,18 +107,18 @@ const styles = StyleSheet.create({
   stepTag: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#2260FF',
+    color: colors.secondary,
     letterSpacing: 0.5,
     marginBottom: 4,
   },
   mainTitle: {
     fontSize: 26,
     fontWeight: '800',
-    color: '#111827',
+    color: colors.primary,
   },
   subTitle: {
     fontSize: 13,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginTop: 4,
   },
   scrollArea: {
@@ -135,7 +136,7 @@ const styles = StyleSheet.create({
   },
   intentCard: {
     width: '48%',
-    backgroundColor: '#F9FAFB',
+    backgroundColor: colors.surfaceSoft,
     borderRadius: 16,
     padding: 14,
     borderWidth: 2,
@@ -158,24 +159,24 @@ const styles = StyleSheet.create({
     width: 18,
     height: 18,
     borderRadius: 9,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: colors.tertiary,
     alignItems: 'center',
     justifyContent: 'center',
   },
   intentTitle: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.primary,
   },
   intentSub: {
     fontSize: 10,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginTop: 2,
   },
   continueButton: {
     height: 50,
     borderRadius: 16,
-    backgroundColor: '#2260FF',
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 24,
@@ -183,7 +184,7 @@ const styles = StyleSheet.create({
   continueButtonText: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.textWhite,
   },
   skipButton: {
     marginTop: 14,
@@ -192,6 +193,6 @@ const styles = StyleSheet.create({
   skipText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
 });

@@ -3,25 +3,26 @@ import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { ChevronRight } from 'lucide-react-native';
 import { useApp } from '../../context/AppContext';
 import SeedhaLogo from '../../components/SeedhaLogo';
+import colors from '../../theme/colors';
 
 const slides = [
   {
     img: 'https://images.unsplash.com/photo-1613977257592-4871e5fcd7c4?w=800&h=900&fit=crop&auto=format',
     title: 'Find Your\nDream Home',
     sub: "Browse thousands of verified properties across India's top cities.",
-    accent: '#2260FF',
+    accent: colors.primary,
   },
   {
     img: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&h=900&fit=crop&auto=format',
     title: 'Rent with\nConfidence',
     sub: 'Transparent listings, verified owners, zero brokerage options.',
-    accent: '#7C3AED',
+    accent: colors.secondary,
   },
   {
     img: 'https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=800&h=900&fit=crop&auto=format',
     title: 'Sell or Rent\nYour Property',
     sub: 'List your property in minutes. Reach lakhs of genuine buyers.',
-    accent: '#0891B2',
+    accent: colors.accent,
   },
 ];
 
@@ -67,7 +68,7 @@ export default function OnboardingScreen() {
               onPress={() => setActive(i)}
               style={[
                 styles.dot,
-                { width: i === active ? 24 : 6, backgroundColor: i === active ? '#FFFFFF' : 'rgba(255,255,255,0.35)' },
+                { width: i === active ? 24 : 6, backgroundColor: i === active ? colors.textWhite : 'rgba(255,255,255,0.35)' },
               ]}
             />
           ))}
@@ -78,7 +79,7 @@ export default function OnboardingScreen() {
           <Text style={styles.nextButtonText}>
             {active < slides.length - 1 ? 'Next' : 'Get Started'}
           </Text>
-          {active < slides.length - 1 && <ChevronRight size={18} color="white" strokeWidth={2.5} />}
+          {active < slides.length - 1 && <ChevronRight size={18} color={colors.textWhite} strokeWidth={2.5} />}
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => push({ name: 'login' })} style={styles.loginLink}>
@@ -94,7 +95,7 @@ export default function OnboardingScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#051042',
+    backgroundColor: colors.primary,
     justifyContent: 'space-between',
   },
   bgImage: {
@@ -111,7 +112,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(5, 16, 66, 0.75)',
+    backgroundColor: colors.overlayDark,
   },
   header: {
     flexDirection: 'row',
@@ -130,7 +131,7 @@ const styles = StyleSheet.create({
   skipText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: colors.textWhite,
   },
   bottomContent: {
     paddingHorizontal: 24,
@@ -140,7 +141,7 @@ const styles = StyleSheet.create({
   titleText: {
     fontSize: 32,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: colors.textWhite,
     lineHeight: 38,
     marginBottom: 10,
   },
@@ -162,7 +163,7 @@ const styles = StyleSheet.create({
   nextButton: {
     height: 52,
     borderRadius: 16,
-    backgroundColor: '#2260FF',
+    backgroundColor: colors.accent,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -170,7 +171,7 @@ const styles = StyleSheet.create({
   nextButtonText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.textWhite,
     marginRight: 6,
   },
   loginLink: {
@@ -179,10 +180,10 @@ const styles = StyleSheet.create({
   },
   loginLinkText: {
     fontSize: 13,
-    color: 'rgba(255,255,255,0.6)',
+    color: 'rgba(255,255,255,0.7)',
   },
   loginBold: {
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.tertiary,
   },
 });

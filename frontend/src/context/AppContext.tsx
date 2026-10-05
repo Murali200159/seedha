@@ -24,8 +24,8 @@ const AppContext = createContext<AppContextType | null>(null);
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<UserProfile | null>(null);
-  const [stack, setStack] = useState<ScreenState[]>([{ name: 'onboarding' }]);
-  const [activeTab, setActiveTab] = useState('home');
+  const [stack, setStack] = useState<ScreenState[]>([{ name: 'splash' }]);
+  const [activeTab, setActiveTab] = useState('explore');
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set(['1', '3']));
 
   const push = useCallback((screen: ScreenState) => {
@@ -49,7 +49,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (tab === 'post') {
       setStack(s => [...s, { name: 'postProperty' }]);
     } else {
-      setStack([tabScreens[tab] || { name: 'home' }]);
+      setStack([tabScreens[tab] || { name: 'landing' }]);
     }
   }, []);
 
@@ -65,14 +65,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setUser(userData);
     setIsAuthenticated(true);
     setStack([{ name: 'landing' }]);
-    setActiveTab('home');
+    setActiveTab('explore');
   }, []);
 
   const signOut = useCallback(() => {
     setUser(null);
     setIsAuthenticated(false);
     setStack([{ name: 'onboarding' }]);
-    setActiveTab('home');
+    setActiveTab('explore');
   }, []);
 
   const currentScreen = stack[stack.length - 1];

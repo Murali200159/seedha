@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Check } from 'lucide-react-native';
 import { useApp } from '../../context/AppContext';
+import colors from '../../theme/colors';
 
 export default function AuthSuccessScreen() {
   const { currentScreen, signIn } = useApp();
@@ -20,7 +21,7 @@ export default function AuthSuccessScreen() {
     <View style={styles.container}>
       <View style={styles.circleOuter}>
         <View style={styles.circleInner}>
-          <Check size={36} color="white" strokeWidth={3} />
+          <Check size={36} color={colors.textWhite} strokeWidth={3} />
         </View>
       </View>
 
@@ -55,7 +56,7 @@ export default function AuthSuccessScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 24,
@@ -64,7 +65,7 @@ const styles = StyleSheet.create({
     width: 110,
     height: 110,
     borderRadius: 55,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: colors.secondaryBg,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 24,
@@ -73,24 +74,24 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#2260FF',
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
   title: {
     fontSize: 28,
     fontWeight: '800',
-    color: '#111827',
+    color: colors.primary,
   },
   welcomeText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.primary,
     marginTop: 6,
   },
   subtitle: {
     fontSize: 14,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginTop: 4,
   },
   bulletList: {
@@ -101,9 +102,11 @@ const styles = StyleSheet.create({
   bulletRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F9FAFB',
+    backgroundColor: colors.surfaceSoft,
     borderRadius: 14,
     padding: 12,
+    borderWidth: 1,
+    borderColor: colors.tertiaryLight,
   },
   bulletEmoji: {
     fontSize: 18,
@@ -112,13 +115,13 @@ const styles = StyleSheet.create({
   bulletText: {
     fontSize: 13,
     fontWeight: '500',
-    color: '#111827',
+    color: colors.primary,
   },
   exploreButton: {
     width: '100%',
     height: 52,
     borderRadius: 16,
-    backgroundColor: '#2260FF',
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 32,
@@ -126,6 +129,6 @@ const styles = StyleSheet.create({
   exploreButtonText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.textWhite,
   },
 });

@@ -2,9 +2,12 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Home, Compass, Plus, CreditCard, UserRound } from 'lucide-react-native';
 import { useApp } from '../context/AppContext';
+import colors from '../theme/colors';
 
 export default function BottomNav() {
   const { activeTab, setTab } = useApp();
+
+  const getTabColor = (tab: string) => (activeTab === tab ? colors.primary : colors.textMuted);
 
   return (
     <View style={styles.container}>
@@ -17,10 +20,10 @@ export default function BottomNav() {
         >
           <Home
             size={22}
-            color={activeTab === 'home' ? '#2260FF' : '#9CA3AF'}
+            color={getTabColor('home')}
             strokeWidth={activeTab === 'home' ? 2.4 : 1.8}
           />
-          <Text style={[styles.tabLabel, { color: activeTab === 'home' ? '#2260FF' : '#9CA3AF' }]}>
+          <Text style={[styles.tabLabel, { color: getTabColor('home') }]}>
             Home
           </Text>
           {activeTab === 'home' && <View style={styles.activeDot} />}
@@ -34,10 +37,10 @@ export default function BottomNav() {
         >
           <Compass
             size={22}
-            color={activeTab === 'explore' ? '#2260FF' : '#9CA3AF'}
+            color={getTabColor('explore')}
             strokeWidth={activeTab === 'explore' ? 2.4 : 1.8}
           />
-          <Text style={[styles.tabLabel, { color: activeTab === 'explore' ? '#2260FF' : '#9CA3AF' }]}>
+          <Text style={[styles.tabLabel, { color: getTabColor('explore') }]}>
             Explore
           </Text>
           {activeTab === 'explore' && <View style={styles.activeDot} />}
@@ -50,7 +53,7 @@ export default function BottomNav() {
           activeOpacity={0.8}
         >
           <View style={styles.postButton}>
-            <Plus size={24} color="#FFFFFF" strokeWidth={2.5} />
+            <Plus size={24} color={colors.textWhite} strokeWidth={2.5} />
           </View>
           <Text style={styles.postLabel}>Post</Text>
         </TouchableOpacity>
@@ -63,10 +66,10 @@ export default function BottomNav() {
         >
           <CreditCard
             size={22}
-            color={activeTab === 'payments' ? '#2260FF' : '#9CA3AF'}
+            color={getTabColor('payments')}
             strokeWidth={activeTab === 'payments' ? 2.4 : 1.8}
           />
-          <Text style={[styles.tabLabel, { color: activeTab === 'payments' ? '#2260FF' : '#9CA3AF' }]}>
+          <Text style={[styles.tabLabel, { color: getTabColor('payments') }]}>
             Payments
           </Text>
           {activeTab === 'payments' && <View style={styles.activeDot} />}
@@ -80,10 +83,10 @@ export default function BottomNav() {
         >
           <UserRound
             size={22}
-            color={activeTab === 'profile' ? '#2260FF' : '#9CA3AF'}
+            color={getTabColor('profile')}
             strokeWidth={activeTab === 'profile' ? 2.4 : 1.8}
           />
-          <Text style={[styles.tabLabel, { color: activeTab === 'profile' ? '#2260FF' : '#9CA3AF' }]}>
+          <Text style={[styles.tabLabel, { color: getTabColor('profile') }]}>
             Profile
           </Text>
           {activeTab === 'profile' && <View style={styles.activeDot} />}
@@ -95,12 +98,12 @@ export default function BottomNav() {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
+    borderTopColor: colors.tertiary,
     paddingBottom: 6,
     paddingTop: 4,
-    shadowColor: '#0F172A',
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.05,
     shadowRadius: 10,
@@ -119,10 +122,10 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   tabLabel: {
+    fontFamily: colors.fontFamily,
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '500',
     marginTop: 3,
-    letterSpacing: -0.1,
   },
   activeDot: {
     position: 'absolute',
@@ -130,7 +133,7 @@ const styles = StyleSheet.create({
     width: 20,
     height: 3,
     borderRadius: 2,
-    backgroundColor: '#2260FF',
+    backgroundColor: colors.primary,
   },
   postTabContainer: {
     flex: 1,
@@ -143,21 +146,22 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#2260FF',
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 3,
-    borderColor: '#FFFFFF',
-    shadowColor: '#2260FF',
+    borderColor: colors.surface,
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
-    shadowRadius: 8,
-    elevation: 6,
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 3,
   },
   postLabel: {
+    fontFamily: colors.fontFamily,
     fontSize: 11,
-    fontWeight: '600',
-    color: '#64748B',
+    fontWeight: '500',
+    color: colors.textSecondary,
     marginTop: 2,
   },
 });

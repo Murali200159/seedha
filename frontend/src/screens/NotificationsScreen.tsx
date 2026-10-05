@@ -2,13 +2,14 @@ import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { ChevronLeft, MessageCircle, Calendar, Building2, Landmark, CheckCircle2 } from 'lucide-react-native';
 import { useApp } from '../context/AppContext';
+import { colors } from '../theme/colors';
 
 const notifications = [
-  { id: '1', type: 'message', icon: MessageCircle, color: '#2260FF', bg: '#EBF0FF', title: 'New inquiry from Suresh Babu', body: 'Is this property still available?', time: '2 min ago', unread: true },
-  { id: '2', type: 'visit', icon: Calendar, color: '#16A34A', bg: '#DCFCE7', title: 'Visit Reminder', body: 'Your visit to 3 BHK, Madhurawada is tomorrow at 10 AM', time: '1 hr ago', unread: true },
-  { id: '3', type: 'property', icon: Building2, color: '#7C3AED', bg: '#EDE9FE', title: 'New properties in Madhapur', body: '5 new properties match your search criteria', time: '3 hr ago', unread: true },
-  { id: '4', type: 'loan', icon: Landmark, color: '#D97706', bg: '#FEF3C7', title: 'Loan offer updated', body: 'SBI reduced rates to 8.35%. Check eligibility now!', time: '1 day ago', unread: false },
-  { id: '5', type: 'verified', icon: CheckCircle2, color: '#16A34A', bg: '#DCFCE7', title: 'Property verified', body: 'Your listing at Jubilee Hills has been verified', time: '2 days ago', unread: false },
+  { id: '1', type: 'message', icon: MessageCircle, color: colors.primary, bg: colors.tertiaryBg, title: 'New inquiry from Suresh Babu', body: 'Is this property still available?', time: '2 min ago', unread: true },
+  { id: '2', type: 'visit', icon: Calendar, color: colors.secondary, bg: colors.tertiaryBg, title: 'Visit Reminder', body: 'Your visit to 3 BHK, Madhurawada is tomorrow at 10 AM', time: '1 hr ago', unread: true },
+  { id: '3', type: 'property', icon: Building2, color: colors.primary, bg: colors.tertiaryBg, title: 'New properties in Madhapur', body: '5 new properties match your search criteria', time: '3 hr ago', unread: true },
+  { id: '4', type: 'loan', icon: Landmark, color: colors.accent, bg: colors.tertiaryBg, title: 'Loan offer updated', body: 'SBI reduced rates to 8.35%. Check eligibility now!', time: '1 day ago', unread: false },
+  { id: '5', type: 'verified', icon: CheckCircle2, color: colors.secondary, bg: colors.tertiaryBg, title: 'Property verified', body: 'Your listing at Jubilee Hills has been verified', time: '2 days ago', unread: false },
 ];
 
 export default function NotificationsScreen() {
@@ -23,7 +24,7 @@ export default function NotificationsScreen() {
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <TouchableOpacity onPress={pop} style={styles.backCircle} activeOpacity={0.8}>
-            <ChevronLeft size={20} color="#111827" strokeWidth={2.5} />
+            <ChevronLeft size={20} color={colors.textPrimary} strokeWidth={2.5} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Notifications</Text>
         </View>
@@ -85,7 +86,7 @@ export default function NotificationsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ECEEF5',
+    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',
@@ -94,6 +95,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 10,
+    backgroundColor: colors.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
   headerLeft: {
     flexDirection: 'row',
@@ -103,7 +107,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.tertiaryBg,
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 1,
@@ -111,13 +115,13 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.textPrimary,
     marginLeft: 10,
   },
   markReadText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#2260FF',
+    color: colors.primary,
   },
   scrollArea: {
     flex: 1,
@@ -129,7 +133,7 @@ const styles = StyleSheet.create({
   sectionHeading: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#6B7280',
+    color: colors.textSecondary,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginBottom: 8,
@@ -140,14 +144,16 @@ const styles = StyleSheet.create({
   notifCard: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 14,
     padding: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
     elevation: 1,
   },
   unreadCard: {
     borderLeftWidth: 3,
-    borderLeftColor: '#2260FF',
+    borderLeftColor: colors.primary,
   },
   iconBox: {
     width: 38,
@@ -163,29 +169,29 @@ const styles = StyleSheet.create({
   notifTitle: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.textPrimary,
   },
   readTitle: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#374151',
+    color: colors.textSecondary,
   },
   notifBody: {
     fontSize: 11,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginTop: 2,
     lineHeight: 16,
   },
   notifTime: {
     fontSize: 10,
-    color: '#9CA3AF',
+    color: colors.textMuted,
     marginTop: 4,
   },
   unreadDot: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#2260FF',
+    backgroundColor: colors.accent,
     marginTop: 4,
   },
 });

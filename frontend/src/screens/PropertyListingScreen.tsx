@@ -7,6 +7,7 @@ import PropertyCard from '../components/PropertyCard';
 import TopBar from '../components/TopBar';
 import EmptyState from '../components/EmptyState';
 import type { ListingType } from '../types';
+import colors from '../theme/colors';
 
 type ViewMode = 'grid' | 'list';
 type SortBy = 'relevance' | 'price_asc' | 'price_desc' | 'newest';
@@ -46,7 +47,7 @@ export default function PropertyListingScreen() {
             style={styles.headerButton}
             activeOpacity={0.8}
           >
-            <SlidersHorizontal size={16} color="#374151" />
+            <SlidersHorizontal size={16} color={colors.primary} />
           </TouchableOpacity>
         }
       />
@@ -54,11 +55,11 @@ export default function PropertyListingScreen() {
       {/* Search Input */}
       <View style={styles.searchContainer}>
         <View style={styles.searchBar}>
-          <Search size={15} color="#9CA3AF" />
+          <Search size={15} color={colors.textMuted} />
           <TextInput
             style={styles.searchInput}
             placeholder={`Search ${type === 'buy' ? 'properties' : type === 'rent' ? 'homes' : 'spaces'}...`}
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={colors.textMuted}
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
@@ -66,19 +67,21 @@ export default function PropertyListingScreen() {
       </View>
 
       {/* Type Filter Chips */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsScroll}>
-        {['All', type === 'buy' ? 'Apartment' : 'Flat', 'Villa', 'House', 'Plot'].map((chip, i) => (
-          <TouchableOpacity
-            key={chip}
-            style={[styles.chip, i === 0 ? styles.activeChip : styles.inactiveChip]}
-            activeOpacity={0.8}
-          >
-            <Text style={[styles.chipText, i === 0 ? styles.activeChipText : styles.inactiveChipText]}>
-              {chip}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+      <View style={styles.chipsSection}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsScroll}>
+          {['All', type === 'buy' ? 'Apartment' : 'Flat', 'Villa', 'House', 'Plot'].map((chip, i) => (
+            <TouchableOpacity
+              key={chip}
+              style={[styles.chip, i === 0 ? styles.activeChip : styles.inactiveChip]}
+              activeOpacity={0.8}
+            >
+              <Text style={[styles.chipText, i === 0 ? styles.activeChipText : styles.inactiveChipText]}>
+                {chip}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
 
       {/* Toolbar */}
       <View style={styles.toolbar}>
@@ -87,7 +90,7 @@ export default function PropertyListingScreen() {
           style={styles.sortButton}
           activeOpacity={0.8}
         >
-          <ArrowUpDown size={13} color="#6B7280" />
+          <ArrowUpDown size={13} color={colors.textSecondary} />
           <Text style={styles.sortButtonText}>
             {sortOptions.find(s => s.value === sortBy)?.label}
           </Text>
@@ -99,14 +102,14 @@ export default function PropertyListingScreen() {
             style={styles.viewIconButton}
             activeOpacity={0.8}
           >
-            <Map size={15} color="#6B7280" />
+            <Map size={15} color={colors.textSecondary} />
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => setViewMode(v => v === 'grid' ? 'list' : 'grid')}
             style={[styles.viewIconButton, styles.activeViewIcon]}
             activeOpacity={0.8}
           >
-            {viewMode === 'grid' ? <List size={15} color="white" /> : <LayoutGrid size={15} color="white" />}
+            {viewMode === 'grid' ? <List size={15} color={colors.textWhite} /> : <LayoutGrid size={15} color={colors.textWhite} />}
           </TouchableOpacity>
         </View>
       </View>
@@ -151,7 +154,7 @@ export default function PropertyListingScreen() {
                 <Text style={styles.sortOptionText}>{opt.label}</Text>
                 {sortBy === opt.value && (
                   <View style={styles.checkCircle}>
-                    <Check size={10} color="white" strokeWidth={3} />
+                    <Check size={10} color={colors.textWhite} strokeWidth={3} />
                   </View>
                 )}
               </TouchableOpacity>
@@ -166,16 +169,18 @@ export default function PropertyListingScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ECEEF5',
+    backgroundColor: colors.background,
   },
   headerButton: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 2,
+    borderWidth: 1,
+    borderColor: colors.tertiary,
   },
   searchContainer: {
     paddingHorizontal: 16,
@@ -184,44 +189,54 @@ const styles = StyleSheet.create({
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 14,
     paddingHorizontal: 12,
     height: 42,
     elevation: 1,
+    borderWidth: 1,
+    borderColor: colors.tertiary,
   },
   searchInput: {
     flex: 1,
     fontSize: 13,
-    color: '#111827',
+    color: colors.primary,
     marginLeft: 8,
+  },
+  chipsSection: {
+    height: 44,
+    marginBottom: 6,
   },
   chipsScroll: {
     paddingHorizontal: 16,
     gap: 8,
-    paddingBottom: 10,
+    alignItems: 'center',
   },
   chip: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 7,
+    borderRadius: 20,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   activeChip: {
-    backgroundColor: '#2260FF',
+    backgroundColor: colors.primary,
   },
   inactiveChip: {
-    backgroundColor: '#FFFFFF',
-    elevation: 1,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.tertiary,
   },
   chipText: {
     fontSize: 12,
     fontWeight: '600',
   },
   activeChipText: {
-    color: '#FFFFFF',
+    color: colors.textWhite,
   },
   inactiveChipText: {
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   toolbar: {
     flexDirection: 'row',
@@ -233,16 +248,18 @@ const styles = StyleSheet.create({
   sortButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 8,
     elevation: 1,
+    borderWidth: 1,
+    borderColor: colors.tertiary,
   },
   sortButtonText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginLeft: 6,
   },
   viewModeGroup: {
@@ -253,13 +270,15 @@ const styles = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 10,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 1,
+    borderWidth: 1,
+    borderColor: colors.tertiary,
   },
   activeViewIcon: {
-    backgroundColor: '#2260FF',
+    backgroundColor: colors.primary,
   },
   listArea: {
     flex: 1,
@@ -281,11 +300,11 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    backgroundColor: colors.modalOverlay,
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 20,
@@ -294,14 +313,14 @@ const styles = StyleSheet.create({
     width: 40,
     height: 4,
     borderRadius: 2,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: colors.tertiary,
     alignSelf: 'center',
     marginBottom: 16,
   },
   modalTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.primary,
     marginBottom: 14,
   },
   sortOptionRow: {
@@ -310,18 +329,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: colors.tertiaryLight,
   },
   sortOptionText: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#111827',
+    color: colors.primary,
   },
   checkCircle: {
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: '#2260FF',
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },

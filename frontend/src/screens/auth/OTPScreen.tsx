@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
 import { ChevronLeft, RefreshCw, PhoneCall } from 'lucide-react-native';
 import { useApp } from '../../context/AppContext';
+import colors from '../../theme/colors';
 
 export default function OTPScreen() {
   const { currentScreen, push, pop, signIn } = useApp();
@@ -48,11 +49,11 @@ export default function OTPScreen() {
       {/* Top Header */}
       <View style={styles.topSection}>
         <TouchableOpacity onPress={pop} style={styles.backCircle} activeOpacity={0.8}>
-          <ChevronLeft size={20} color="#111827" strokeWidth={2.5} />
+          <ChevronLeft size={20} color={colors.primary} strokeWidth={2.5} />
         </TouchableOpacity>
 
         <View style={styles.iconBox}>
-          <PhoneCall size={26} color="#2260FF" />
+          <PhoneCall size={26} color={colors.primary} />
         </View>
 
         <Text style={styles.mainTitle}>Verify your number</Text>
@@ -85,7 +86,7 @@ export default function OTPScreen() {
           activeOpacity={0.9}
         >
           {loading ? (
-            <ActivityIndicator color="white" />
+            <ActivityIndicator color={colors.textWhite} />
           ) : (
             <Text style={styles.verifyButtonText}>Verify & Continue</Text>
           )}
@@ -98,7 +99,7 @@ export default function OTPScreen() {
               onPress={() => { setCountdown(30); setCanResend(false); }}
               style={styles.resendRow}
             >
-              <RefreshCw size={13} color="#2260FF" />
+              <RefreshCw size={13} color={colors.accent} />
               <Text style={styles.resendText}>Resend OTP</Text>
             </TouchableOpacity>
           ) : (
@@ -113,10 +114,10 @@ export default function OTPScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
   },
   topSection: {
-    backgroundColor: '#F8F9FF',
+    backgroundColor: colors.background,
     paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: 24,
@@ -125,7 +126,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 1,
@@ -135,7 +136,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 16,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: colors.secondaryBg,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
@@ -143,16 +144,16 @@ const styles = StyleSheet.create({
   mainTitle: {
     fontSize: 26,
     fontWeight: '800',
-    color: '#111827',
+    color: colors.primary,
   },
   subTitle: {
     fontSize: 13,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginTop: 4,
   },
   phoneBold: {
     fontWeight: '700',
-    color: '#111827',
+    color: colors.primary,
   },
   body: {
     paddingHorizontal: 20,
@@ -168,31 +169,32 @@ const styles = StyleSheet.create({
     height: 52,
     borderRadius: 14,
     borderWidth: 1.5,
-    borderColor: '#E5E7EB',
-    backgroundColor: '#FFFFFF',
+    borderColor: colors.tertiary,
+    backgroundColor: colors.surface,
     textAlign: 'center',
     fontSize: 20,
     fontWeight: '800',
-    color: '#111827',
+    color: colors.primary,
   },
   activeDigitInput: {
-    borderColor: '#2260FF',
-    backgroundColor: '#EFF6FF',
+    borderColor: colors.primary,
+    backgroundColor: colors.secondaryBg,
   },
   verifyButton: {
     height: 50,
     borderRadius: 16,
-    backgroundColor: '#2260FF',
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
   disabledButton: {
-    backgroundColor: '#C7D5FF',
+    backgroundColor: colors.tertiaryDark,
+    opacity: 0.5,
   },
   verifyButtonText: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.textWhite,
   },
   resendWrap: {
     alignItems: 'center',
@@ -200,7 +202,7 @@ const styles = StyleSheet.create({
   },
   resendHelp: {
     fontSize: 12,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginBottom: 6,
   },
   resendRow: {
@@ -210,12 +212,12 @@ const styles = StyleSheet.create({
   resendText: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#2260FF',
+    color: colors.accent,
     marginLeft: 4,
   },
   timerText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#6B7280',
+    color: colors.textMuted,
   },
 });

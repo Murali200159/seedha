@@ -19,6 +19,7 @@ import {
   Mail,
 } from 'lucide-react-native';
 import { useApp } from '../context/AppContext';
+import { colors } from '../theme/colors';
 
 const menuSections = [
   {
@@ -66,7 +67,7 @@ export default function ProfileScreen() {
                   style={styles.avatarImage}
                 />
                 <TouchableOpacity style={styles.cameraCircle}>
-                  <Camera size={11} color="white" />
+                  <Camera size={11} color={colors.textWhite} />
                 </TouchableOpacity>
               </View>
               <View style={styles.userInfoCol}>
@@ -79,16 +80,16 @@ export default function ProfileScreen() {
                     </View>
                   </View>
                   <TouchableOpacity style={styles.editButton}>
-                    <Edit3 size={15} color="#6B7280" />
+                    <Edit3 size={15} color={colors.secondary} />
                   </TouchableOpacity>
                 </View>
 
                 <View style={styles.contactRow}>
-                  <Phone size={11} color="#9CA3AF" />
+                  <Phone size={11} color={colors.textMuted} />
                   <Text style={styles.contactText}>+91 98765 43210</Text>
                 </View>
                 <View style={[styles.contactRow, { marginTop: 2 }]}>
-                  <Mail size={11} color="#9CA3AF" />
+                  <Mail size={11} color={colors.textMuted} />
                   <Text style={styles.contactText}>rahul@email.com</Text>
                 </View>
               </View>
@@ -124,7 +125,7 @@ export default function ProfileScreen() {
                     activeOpacity={0.8}
                   >
                     <View style={styles.menuIconCircle}>
-                      <Icon size={17} color="#6B7280" />
+                      <Icon size={17} color={colors.secondary} />
                     </View>
                     <Text style={styles.menuText}>{label}</Text>
                     {badge ? (
@@ -132,7 +133,7 @@ export default function ProfileScreen() {
                         <Text style={styles.badgeText}>{badge}</Text>
                       </View>
                     ) : null}
-                    <ChevronRight size={15} color="#9CA3AF" />
+                    <ChevronRight size={15} color={colors.textMuted} />
                   </TouchableOpacity>
                 ))}
               </View>
@@ -141,7 +142,7 @@ export default function ProfileScreen() {
 
           <TouchableOpacity style={styles.logoutButton} activeOpacity={0.8}>
             <View style={styles.logoutIconBox}>
-              <LogOut size={17} color="#DC2626" />
+              <LogOut size={17} color={colors.accent} />
             </View>
             <Text style={styles.logoutText}>Logout</Text>
           </TouchableOpacity>
@@ -156,7 +157,7 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ECEEF5',
+    backgroundColor: colors.background,
   },
   scrollArea: {
     flex: 1,
@@ -168,13 +169,15 @@ const styles = StyleSheet.create({
   pageTitle: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#111827',
+    color: colors.textPrimary,
     marginBottom: 12,
   },
   profileCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 20,
     padding: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
     elevation: 2,
   },
   userRow: {
@@ -196,7 +199,7 @@ const styles = StyleSheet.create({
     width: 22,
     height: 22,
     borderRadius: 11,
-    backgroundColor: '#2260FF',
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -212,7 +215,7 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.textPrimary,
   },
   verifiedRow: {
     flexDirection: 'row',
@@ -223,18 +226,18 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#10B981',
+    backgroundColor: colors.secondary,
     marginRight: 4,
   },
   verifiedText: {
     fontSize: 11,
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   editButton: {
     width: 30,
     height: 30,
     borderRadius: 15,
-    backgroundColor: '#ECEEF5',
+    backgroundColor: colors.tertiaryBg,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -245,7 +248,7 @@ const styles = StyleSheet.create({
   },
   contactText: {
     fontSize: 11,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginLeft: 4,
   },
   statsRow: {
@@ -253,7 +256,7 @@ const styles = StyleSheet.create({
     marginTop: 14,
     paddingTop: 14,
     borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
+    borderTopColor: colors.border,
   },
   statCell: {
     flex: 1,
@@ -262,11 +265,11 @@ const styles = StyleSheet.create({
   statVal: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#111827',
+    color: colors.textPrimary,
   },
   statLabel: {
     fontSize: 11,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginTop: 2,
   },
   menuPadding: {
@@ -280,15 +283,17 @@ const styles = StyleSheet.create({
   sectionHeader: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#6B7280',
+    color: colors.textSecondary,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginBottom: 8,
   },
   menuCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 16,
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: colors.border,
     elevation: 1,
   },
   menuRow: {
@@ -297,13 +302,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: colors.border,
   },
   menuIconCircle: {
     width: 34,
     height: 34,
     borderRadius: 10,
-    backgroundColor: '#ECEEF5',
+    backgroundColor: colors.tertiaryBg,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -311,14 +316,14 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 13,
     fontWeight: '500',
-    color: '#111827',
+    color: colors.textPrimary,
     marginLeft: 12,
   },
   badgeCircle: {
     width: 18,
     height: 18,
     borderRadius: 9,
-    backgroundColor: '#2260FF',
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 6,
@@ -326,35 +331,37 @@ const styles = StyleSheet.create({
   badgeText: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.textWhite,
   },
   logoutButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FEE2E2',
+    backgroundColor: colors.accentBg,
     borderRadius: 16,
     paddingHorizontal: 14,
     paddingVertical: 12,
     marginTop: 8,
+    borderWidth: 1,
+    borderColor: colors.tertiary,
   },
   logoutIconBox: {
     width: 34,
     height: 34,
     borderRadius: 10,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
   },
   logoutText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#DC2626',
+    color: colors.accent,
     marginLeft: 12,
   },
   versionText: {
     textAlign: 'center',
     fontSize: 11,
-    color: '#9CA3AF',
+    color: colors.textMuted,
     marginTop: 16,
   },
 });

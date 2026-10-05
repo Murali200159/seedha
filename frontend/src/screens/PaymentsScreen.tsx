@@ -12,6 +12,7 @@ import {
   ShieldCheck,
   WalletCards,
 } from 'lucide-react-native';
+import { colors } from '../theme/colors';
 
 const transactions = [
   {
@@ -54,13 +55,13 @@ export default function PaymentsScreen() {
                 <Text style={styles.dueSub}>Maintenance payment due by 25 Aug</Text>
               </View>
               <View style={styles.walletIconBox}>
-                <WalletCards size={23} color="white" />
+                <WalletCards size={23} color={colors.textWhite} />
               </View>
             </View>
 
             <TouchableOpacity style={styles.payButton} activeOpacity={0.9}>
               <Text style={styles.payButtonText}>Pay securely</Text>
-              <ArrowUpRight size={16} color="#2260FF" />
+              <ArrowUpRight size={16} color={colors.primary} />
             </TouchableOpacity>
           </View>
         </View>
@@ -70,15 +71,15 @@ export default function PaymentsScreen() {
           <View style={styles.optionsGrid}>
             <TouchableOpacity style={styles.optionCard} activeOpacity={0.8}>
               <View style={styles.optionIconBox}>
-                <CreditCard size={19} color="#2260FF" />
+                <CreditCard size={19} color={colors.primary} />
               </View>
               <Text style={styles.optionTitle}>Payment methods</Text>
               <Text style={styles.optionSub}>Cards, UPI and banks</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.optionCard} activeOpacity={0.8}>
-              <View style={[styles.optionIconBox, { backgroundColor: '#DCFCE7' }]}>
-                <ReceiptIndianRupee size={19} color="#16A34A" />
+              <View style={[styles.optionIconBox, { backgroundColor: colors.tertiaryBg }]}>
+                <ReceiptIndianRupee size={19} color={colors.secondary} />
               </View>
               <Text style={styles.optionTitle}>Receipts</Text>
               <Text style={styles.optionSub}>View and download</Text>
@@ -99,13 +100,13 @@ export default function PaymentsScreen() {
             {transactions.map(({ id, title, detail, amount, date, status, icon: Icon }) => (
               <TouchableOpacity key={id} style={styles.transCard} activeOpacity={0.8}>
                 <View style={styles.transIconBox}>
-                  <Icon size={19} color="#2260FF" />
+                  <Icon size={19} color={colors.primary} />
                 </View>
                 <View style={styles.transContent}>
                   <Text style={styles.transTitle}>{title}</Text>
                   <Text style={styles.transDetail} numberOfLines={1}>{detail}</Text>
                   <View style={styles.statusRow}>
-                    {status === 'Paid' ? <CheckCircle2 size={11} color="#16A34A" /> : <Clock3 size={11} color="#D97706" />}
+                    {status === 'Paid' ? <CheckCircle2 size={11} color={colors.secondary} /> : <Clock3 size={11} color={colors.accent} />}
                     <Text style={styles.statusText}>{status} · {date}</Text>
                   </View>
                 </View>
@@ -113,13 +114,13 @@ export default function PaymentsScreen() {
                   <Text style={styles.amountText}>{amount}</Text>
                   <Text style={styles.idText}>{id}</Text>
                 </View>
-                <ChevronRight size={16} color="#9CA3AF" />
+                <ChevronRight size={16} color={colors.textMuted} />
               </TouchableOpacity>
             ))}
           </View>
 
           <View style={styles.securityBox}>
-            <ShieldCheck size={16} color="#16A34A" />
+            <ShieldCheck size={16} color={colors.secondary} />
             <Text style={styles.securityText}>Your payments are protected with bank-grade encryption.</Text>
           </View>
         </View>
@@ -131,21 +132,24 @@ export default function PaymentsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ECEEF5',
+    backgroundColor: colors.background,
   },
   header: {
     paddingHorizontal: 20,
     paddingTop: 14,
     paddingBottom: 10,
+    backgroundColor: colors.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
   headerTitle: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#111827',
+    color: colors.textPrimary,
   },
   headerSub: {
     fontSize: 12,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginTop: 2,
   },
   scrollArea: {
@@ -156,7 +160,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   dueCard: {
-    backgroundColor: '#2260FF',
+    backgroundColor: colors.primary,
     borderRadius: 24,
     padding: 20,
     elevation: 3,
@@ -168,17 +172,17 @@ const styles = StyleSheet.create({
   },
   dueLabel: {
     fontSize: 12,
-    color: '#BFDBFE',
+    color: colors.tertiary,
   },
   dueAmount: {
     fontSize: 30,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: colors.textWhite,
     marginTop: 4,
   },
   dueSub: {
     fontSize: 11,
-    color: '#BFDBFE',
+    color: colors.tertiary,
     marginTop: 4,
   },
   walletIconBox: {
@@ -193,7 +197,7 @@ const styles = StyleSheet.create({
     marginTop: 18,
     height: 44,
     borderRadius: 14,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -201,7 +205,7 @@ const styles = StyleSheet.create({
   payButtonText: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#2260FF',
+    color: colors.primary,
     marginRight: 6,
   },
   optionsGrid: {
@@ -210,28 +214,30 @@ const styles = StyleSheet.create({
   },
   optionCard: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 14,
+    borderWidth: 1,
+    borderColor: colors.border,
     elevation: 2,
   },
   optionIconBox: {
     width: 38,
     height: 38,
     borderRadius: 12,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: colors.tertiaryBg,
     alignItems: 'center',
     justifyContent: 'center',
   },
   optionTitle: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.textPrimary,
     marginTop: 10,
   },
   optionSub: {
     fontSize: 10,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginTop: 2,
   },
   sectionHeaderRow: {
@@ -243,12 +249,12 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.textPrimary,
   },
   viewAllText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#2260FF',
+    color: colors.primary,
   },
   listWrap: {
     gap: 10,
@@ -256,16 +262,18 @@ const styles = StyleSheet.create({
   transCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
     elevation: 1,
   },
   transIconBox: {
     width: 40,
     height: 40,
     borderRadius: 12,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: colors.tertiaryBg,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -276,11 +284,11 @@ const styles = StyleSheet.create({
   transTitle: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.textPrimary,
   },
   transDetail: {
     fontSize: 11,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginTop: 2,
   },
   statusRow: {
@@ -291,7 +299,7 @@ const styles = StyleSheet.create({
   statusText: {
     fontSize: 10,
     fontWeight: '600',
-    color: '#16A34A',
+    color: colors.secondary,
     marginLeft: 4,
   },
   amountCol: {
@@ -301,24 +309,24 @@ const styles = StyleSheet.create({
   amountText: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.textPrimary,
   },
   idText: {
     fontSize: 9,
-    color: '#9CA3AF',
+    color: colors.textMuted,
     marginTop: 2,
   },
   securityBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#DCFCE7',
+    backgroundColor: colors.tertiaryBg,
     borderRadius: 12,
     padding: 10,
     marginTop: 12,
   },
   securityText: {
     fontSize: 11,
-    color: '#15803D',
+    color: colors.secondary,
     marginLeft: 6,
     flex: 1,
   },

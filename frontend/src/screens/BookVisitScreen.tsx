@@ -3,6 +3,7 @@ import { View, Text, ScrollView, Image, TouchableOpacity, ActivityIndicator, Sty
 import { ChevronLeft, Calendar, Clock, MapPin, CheckCircle2, CalendarPlus, Navigation } from 'lucide-react-native';
 import { useApp } from '../context/AppContext';
 import type { Property } from '../types';
+import colors from '../theme/colors';
 
 const timeSlots = [
   '9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM',
@@ -46,7 +47,7 @@ export default function BookVisitScreen() {
     return (
       <View style={styles.successContainer}>
         <View style={styles.successBadgeCircle}>
-          <CheckCircle2 size={40} color="#16A34A" />
+          <CheckCircle2 size={40} color={colors.secondary} />
         </View>
         <Text style={styles.successTitle}>Visit Confirmed!</Text>
         <Text style={styles.successSubtitle}>
@@ -59,18 +60,18 @@ export default function BookVisitScreen() {
             <View style={styles.propertyMeta}>
               <Text style={styles.propertyTitle}>{property.title}</Text>
               <View style={styles.locationRow}>
-                <MapPin size={11} color="#9CA3AF" />
+                <MapPin size={11} color={colors.textMuted} />
                 <Text style={styles.locationText}>{property.location}</Text>
               </View>
             </View>
           </View>
           <View style={styles.visitTimeDetails}>
             <View style={styles.rowCenter}>
-              <Calendar size={14} color="#2260FF" />
+              <Calendar size={14} color={colors.primary} />
               <Text style={styles.visitTimeText}>{dates[selectedDate!]?.full}</Text>
             </View>
             <View style={[styles.rowCenter, { marginTop: 4 }]}>
-              <Clock size={14} color="#2260FF" />
+              <Clock size={14} color={colors.primary} />
               <Text style={styles.visitTimeText}>{selectedTime}</Text>
             </View>
           </View>
@@ -92,7 +93,7 @@ export default function BookVisitScreen() {
           style={styles.backCircle}
           activeOpacity={0.8}
         >
-          <ChevronLeft size={20} color="#111827" strokeWidth={2.5} />
+          <ChevronLeft size={20} color={colors.primary} strokeWidth={2.5} />
         </TouchableOpacity>
         <View style={styles.headerColumn}>
           <Text style={styles.headerTitle}>Book a Visit</Text>
@@ -175,7 +176,7 @@ export default function BookVisitScreen() {
           activeOpacity={0.9}
         >
           {loading ? (
-            <ActivityIndicator color="white" />
+            <ActivityIndicator color={colors.textWhite} />
           ) : (
             <Text style={styles.submitButtonText}>{step === 'confirm' ? 'Confirm Visit' : 'Continue'}</Text>
           )}
@@ -188,7 +189,7 @@ export default function BookVisitScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ECEEF5',
+    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',
@@ -196,15 +197,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 10,
+    backgroundColor: colors.background,
   },
   backCircle: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 1,
+    borderWidth: 1,
+    borderColor: colors.tertiary,
   },
   headerColumn: {
     marginLeft: 10,
@@ -212,11 +216,11 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.primary,
   },
   headerSub: {
     fontSize: 11,
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   scrollBody: {
     flex: 1,
@@ -228,12 +232,12 @@ const styles = StyleSheet.create({
   stepTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.primary,
     marginBottom: 12,
   },
   selectedDateSub: {
     fontSize: 12,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginBottom: 12,
   },
   dateScroll: {
@@ -246,11 +250,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   selectedDateCard: {
-    backgroundColor: '#2260FF',
+    backgroundColor: colors.primary,
   },
   unselectedDateCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     elevation: 1,
+    borderWidth: 1,
+    borderColor: colors.tertiary,
   },
   dayText: {
     fontSize: 11,
@@ -266,10 +272,10 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   selectedText: {
-    color: '#FFFFFF',
+    color: colors.textWhite,
   },
   unselectedText: {
-    color: '#374151',
+    color: colors.textSecondary,
   },
   timeGrid: {
     flexDirection: 'row',
@@ -287,10 +293,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   confirmCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 16,
     overflow: 'hidden',
     elevation: 2,
+    borderWidth: 1,
+    borderColor: colors.tertiary,
   },
   confirmImage: {
     width: '100%',
@@ -302,52 +310,53 @@ const styles = StyleSheet.create({
   propertyTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.primary,
   },
   locationText: {
     fontSize: 11,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginTop: 2,
   },
   confirmTimeRow: {
     marginTop: 10,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
+    borderTopColor: colors.tertiaryLight,
   },
   footerContainer: {
     padding: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
+    borderTopColor: colors.tertiary,
   },
   submitButton: {
     height: 48,
     borderRadius: 14,
-    backgroundColor: '#2260FF',
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
   disabledButton: {
+    backgroundColor: colors.tertiaryDark,
     opacity: 0.5,
   },
   submitButtonText: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.textWhite,
   },
   successContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 24,
-    backgroundColor: '#ECEEF5',
+    backgroundColor: colors.background,
   },
   successBadgeCircle: {
     width: 70,
     height: 70,
     borderRadius: 35,
-    backgroundColor: '#DCFCE7',
+    backgroundColor: colors.secondaryBg,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
@@ -355,21 +364,23 @@ const styles = StyleSheet.create({
   successTitle: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#111827',
+    color: colors.primary,
     marginBottom: 8,
   },
   successSubtitle: {
     fontSize: 13,
-    color: '#6B7280',
+    color: colors.textSecondary,
     textAlign: 'center',
   },
   confirmationCard: {
     width: '100%',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 14,
     marginTop: 20,
     elevation: 2,
+    borderWidth: 1,
+    borderColor: colors.tertiary,
   },
   propertyThumb: {
     width: 50,
@@ -389,12 +400,12 @@ const styles = StyleSheet.create({
     marginTop: 10,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
+    borderTopColor: colors.tertiaryLight,
   },
   visitTimeText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#111827',
+    color: colors.primary,
     marginLeft: 6,
   },
   rowCenter: {
@@ -406,11 +417,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 14,
-    backgroundColor: '#2260FF',
+    backgroundColor: colors.primary,
   },
   backButtonText: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.textWhite,
   },
 });

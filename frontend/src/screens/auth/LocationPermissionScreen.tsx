@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { ChevronLeft, Navigation, Check } from 'lucide-react-native';
 import { useApp } from '../../context/AppContext';
+import colors from '../../theme/colors';
 
 const cities = ['Hyderabad', 'Vizag', 'Vijayawada', 'Bengaluru', 'Chennai', 'Mumbai'];
 
@@ -24,7 +25,7 @@ export default function LocationPermissionScreen() {
     <View style={styles.container}>
       <View style={styles.topSection}>
         <TouchableOpacity onPress={() => push({ name: 'propertyIntent', params })} style={styles.backCircle} activeOpacity={0.8}>
-          <ChevronLeft size={20} color="#111827" strokeWidth={2.5} />
+          <ChevronLeft size={20} color={colors.primary} strokeWidth={2.5} />
         </TouchableOpacity>
 
         <Text style={styles.stepTag}>STEP 3 OF 3</Text>
@@ -38,7 +39,7 @@ export default function LocationPermissionScreen() {
             <>
               <View style={styles.navBanner}>
                 <View style={styles.navIconBox}>
-                  <Navigation size={32} color="white" />
+                  <Navigation size={32} color={colors.textWhite} />
                 </View>
                 <Text style={styles.navTitle}>Location Access</Text>
                 <Text style={styles.navSub}>We use your location to show nearby properties and estimate commute times.</Text>
@@ -53,7 +54,7 @@ export default function LocationPermissionScreen() {
                 ].map((item, i) => (
                   <View key={i} style={styles.bulletRow}>
                     <View style={styles.bulletCheck}>
-                      <Check size={10} color="#16A34A" strokeWidth={3} />
+                      <Check size={10} color={colors.secondary} strokeWidth={3} />
                     </View>
                     <Text style={styles.bulletText}>{item}</Text>
                   </View>
@@ -109,10 +110,10 @@ export default function LocationPermissionScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
   },
   topSection: {
-    backgroundColor: '#F8F9FF',
+    backgroundColor: colors.background,
     paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: 24,
@@ -121,7 +122,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 1,
@@ -130,18 +131,18 @@ const styles = StyleSheet.create({
   stepTag: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#2260FF',
+    color: colors.secondary,
     letterSpacing: 0.5,
     marginBottom: 4,
   },
   mainTitle: {
     fontSize: 26,
     fontWeight: '800',
-    color: '#111827',
+    color: colors.primary,
   },
   subTitle: {
     fontSize: 13,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginTop: 4,
   },
   scrollArea: {
@@ -153,7 +154,7 @@ const styles = StyleSheet.create({
     paddingBottom: 30,
   },
   navBanner: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: colors.secondaryBg,
     borderRadius: 20,
     padding: 24,
     alignItems: 'center',
@@ -163,7 +164,7 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: '#2260FF',
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
@@ -171,11 +172,11 @@ const styles = StyleSheet.create({
   navTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.primary,
   },
   navSub: {
     fontSize: 12,
-    color: '#6B7280',
+    color: colors.textSecondary,
     textAlign: 'center',
     marginTop: 4,
   },
@@ -191,29 +192,30 @@ const styles = StyleSheet.create({
     width: 18,
     height: 18,
     borderRadius: 9,
-    backgroundColor: '#DCFCE7',
+    backgroundColor: colors.secondaryBg,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 10,
   },
   bulletText: {
     fontSize: 13,
-    color: '#111827',
+    color: colors.primary,
   },
   mainButton: {
     height: 50,
     borderRadius: 16,
-    backgroundColor: '#2260FF',
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
   disabledButton: {
-    backgroundColor: '#C7D5FF',
+    backgroundColor: colors.tertiaryDark,
+    opacity: 0.5,
   },
   mainButtonText: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.textWhite,
   },
   skipButton: {
     marginTop: 14,
@@ -222,12 +224,12 @@ const styles = StyleSheet.create({
   skipText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   manualHeading: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.primary,
     marginBottom: 12,
   },
   citiesWrap: {
@@ -242,19 +244,21 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   selectedChip: {
-    backgroundColor: '#2260FF',
+    backgroundColor: colors.primary,
   },
   unselectedChip: {
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.surfaceSoft,
+    borderWidth: 1,
+    borderColor: colors.tertiary,
   },
   cityChipText: {
     fontSize: 13,
     fontWeight: '600',
   },
   selectedChipText: {
-    color: '#FFFFFF',
+    color: colors.textWhite,
   },
   unselectedChipText: {
-    color: '#374151',
+    color: colors.textSecondary,
   },
 });

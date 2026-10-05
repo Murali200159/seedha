@@ -21,6 +21,7 @@ import SearchScreen from './screens/SearchScreen';
 import CompareScreen from './screens/CompareScreen';
 import PaymentsScreen from './screens/PaymentsScreen';
 import LandingScreen from './screens/LandingScreen';
+import SplashScreen from './screens/SplashScreen';
 import OnboardingScreen from './screens/auth/OnboardingScreen';
 import LoginScreen from './screens/auth/LoginScreen';
 import OTPScreen from './screens/auth/OTPScreen';
@@ -30,9 +31,11 @@ import PropertyIntentScreen from './screens/auth/PropertyIntentScreen';
 import LocationPermissionScreen from './screens/auth/LocationPermissionScreen';
 import AuthSuccessScreen from './screens/auth/AuthSuccessScreen';
 
+import colors from './theme/colors';
+
 const TAB_SCREENS = new Set(['home', 'explore', 'payments', 'profile']);
 const AUTH_SCREENS = new Set([
-  'onboarding', 'login', 'signup', 'otp',
+  'splash', 'onboarding', 'login', 'signup', 'otp',
   'profileSetup', 'propertyIntent', 'locationPermission', 'authSuccess',
 ]);
 
@@ -41,6 +44,7 @@ function ScreenRouter() {
 
   const renderScreen = () => {
     switch (currentScreen.name) {
+      case 'splash': return <SplashScreen />;
       // Auth flow
       case 'onboarding': return <OnboardingScreen />;
       case 'login': return <LoginScreen />;
@@ -87,11 +91,17 @@ function ScreenRouter() {
 
 function MainAppShell() {
   const { currentScreen } = useApp();
-  const isOnboarding = currentScreen.name === 'onboarding';
+  const isDarkScreen = currentScreen.name === 'splash' || currentScreen.name === 'onboarding';
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
-      <StatusBar style={isOnboarding ? 'light' : 'dark'} />
+    <SafeAreaView
+      style={[
+        styles.safeArea,
+        isDarkScreen && { backgroundColor: colors.primary },
+      ]}
+      edges={['top', 'left', 'right']}
+    >
+      <StatusBar style={isDarkScreen ? 'light' : 'dark'} />
       <ScreenRouter />
     </SafeAreaView>
   );
@@ -110,7 +120,7 @@ export default function App() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#ECEEF5',
+    backgroundColor: colors.background,
   },
   routerContainer: {
     flex: 1,

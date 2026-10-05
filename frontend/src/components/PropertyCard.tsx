@@ -3,6 +3,7 @@ import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { Heart, MapPin, BedDouble, Bath, Square, ShieldCheck } from 'lucide-react-native';
 import { useApp } from '../context/AppContext';
 import type { Property } from '../types';
+import colors from '../theme/colors';
 
 interface Props {
   property: Property;
@@ -11,9 +12,9 @@ interface Props {
 }
 
 const getBadge = (type: Property['listingType']) => {
-  if (type === 'buy') return { label: 'For Sale', bg: '#16A34A' };
-  if (type === 'rent') return { label: 'For Rent', bg: '#6D28D9' };
-  return { label: 'Commercial', bg: '#D97706' };
+  if (type === 'buy') return { label: 'For Sale', bg: colors.primary };
+  if (type === 'rent') return { label: 'For Rent', bg: colors.secondary };
+  return { label: 'Commercial', bg: colors.accent };
 };
 
 export default function PropertyCard({ property, compact = false, horizontal = false }: Props) {
@@ -40,10 +41,10 @@ export default function PropertyCard({ property, compact = false, horizontal = f
               <Text style={styles.horizontalTitle} numberOfLines={1}>
                 {property.title}
               </Text>
-              {property.verified && <ShieldCheck size={14} color="#2260FF" style={styles.verifiedIcon} />}
+              {property.verified && <ShieldCheck size={14} color={colors.secondary} style={styles.verifiedIcon} />}
             </View>
             <View style={styles.locationRow}>
-              <MapPin size={11} color="#9CA3AF" strokeWidth={2} />
+              <MapPin size={11} color={colors.textMuted} strokeWidth={2} />
               <Text style={styles.locationText} numberOfLines={1}>
                 {property.location}
               </Text>
@@ -53,16 +54,16 @@ export default function PropertyCard({ property, compact = false, horizontal = f
           <View style={styles.metaRow}>
             {property.bedrooms > 0 && (
               <View style={styles.metaItem}>
-                <BedDouble size={11} strokeWidth={1.5} color="#9CA3AF" />
+                <BedDouble size={11} strokeWidth={1.5} color={colors.textMuted} />
                 <Text style={styles.metaText}>{property.bedrooms} Bed</Text>
               </View>
             )}
             <View style={styles.metaItem}>
-              <Bath size={11} strokeWidth={1.5} color="#9CA3AF" />
+              <Bath size={11} strokeWidth={1.5} color={colors.textMuted} />
               <Text style={styles.metaText}>{property.bathrooms} Bath</Text>
             </View>
             <View style={styles.metaItem}>
-              <Square size={11} strokeWidth={1.5} color="#9CA3AF" />
+              <Square size={11} strokeWidth={1.5} color={colors.textMuted} />
               <Text style={styles.metaText}>{property.area} sq.ft</Text>
             </View>
           </View>
@@ -91,14 +92,14 @@ export default function PropertyCard({ property, compact = false, horizontal = f
         >
           <Heart
             size={15}
-            fill={saved ? '#EF4444' : 'transparent'}
-            color={saved ? '#EF4444' : '#6B7280'}
+            fill={saved ? colors.accent : 'transparent'}
+            color={saved ? colors.accent : colors.textMuted}
             strokeWidth={2}
           />
         </TouchableOpacity>
         {property.verified && (
           <View style={styles.verifiedBadge}>
-            <ShieldCheck size={11} color="#2260FF" />
+            <ShieldCheck size={11} color={colors.secondary} />
             <Text style={styles.verifiedText}>Verified</Text>
           </View>
         )}
@@ -109,7 +110,7 @@ export default function PropertyCard({ property, compact = false, horizontal = f
           {property.title}
         </Text>
         <View style={styles.locationRow}>
-          <MapPin size={11} color="#9CA3AF" strokeWidth={2} />
+          <MapPin size={11} color={colors.textMuted} strokeWidth={2} />
           <Text style={styles.locationText} numberOfLines={1}>
             {property.location}
           </Text>
@@ -118,16 +119,16 @@ export default function PropertyCard({ property, compact = false, horizontal = f
         <View style={styles.cardFooter}>
           {property.bedrooms > 0 && (
             <View style={styles.metaItem}>
-              <BedDouble size={11} strokeWidth={1.5} color="#9CA3AF" />
+              <BedDouble size={11} strokeWidth={1.5} color={colors.textMuted} />
               <Text style={styles.metaText}>{property.bedrooms} Bed</Text>
             </View>
           )}
           <View style={styles.metaItem}>
-            <Bath size={11} strokeWidth={1.5} color="#9CA3AF" />
+            <Bath size={11} strokeWidth={1.5} color={colors.textMuted} />
             <Text style={styles.metaText}>{property.bathrooms} Bath</Text>
           </View>
           <View style={styles.metaItem}>
-            <Square size={11} strokeWidth={1.5} color="#9CA3AF" />
+            <Square size={11} strokeWidth={1.5} color={colors.textMuted} />
             <Text style={styles.metaText}>{property.area} sq.ft</Text>
           </View>
         </View>
@@ -139,17 +140,17 @@ export default function PropertyCard({ property, compact = false, horizontal = f
 const styles = StyleSheet.create({
   horizontalCard: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 20,
     overflow: 'hidden',
-    shadowColor: '#1E293B',
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.06,
     shadowRadius: 10,
     elevation: 4,
     marginBottom: 14,
     borderWidth: 1,
-    borderColor: '#F1F5F9',
+    borderColor: colors.tertiary,
   },
   horizontalImageContainer: {
     width: 115,
@@ -172,11 +173,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   horizontalTitle: {
+    fontFamily: colors.fontFamily,
     flex: 1,
     fontSize: 15,
-    fontWeight: '700',
-    color: '#0F172A',
-    letterSpacing: -0.2,
+    fontWeight: '600',
+    color: colors.primary,
   },
   verifiedIcon: {
     marginLeft: 4,
@@ -187,15 +188,18 @@ const styles = StyleSheet.create({
     marginTop: 3,
   },
   locationText: {
+    fontFamily: colors.fontFamily,
     fontSize: 12,
-    color: '#64748B',
+    fontWeight: '400',
+    color: colors.textSecondary,
     marginLeft: 3,
     flex: 1,
   },
   priceText: {
+    fontFamily: colors.fontFamily,
     fontSize: 15,
-    fontWeight: '800',
-    color: '#2260FF',
+    fontWeight: '700',
+    color: colors.primary,
     marginTop: 4,
   },
   metaRow: {
@@ -206,16 +210,19 @@ const styles = StyleSheet.create({
   metaItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.surfaceSoft,
     paddingHorizontal: 6,
     paddingVertical: 3,
     borderRadius: 8,
     marginRight: 6,
+    borderWidth: 1,
+    borderColor: colors.tertiaryLight,
   },
   metaText: {
+    fontFamily: colors.fontFamily,
     fontSize: 11,
-    fontWeight: '600',
-    color: '#475569',
+    fontWeight: '500',
+    color: colors.textSecondary,
     marginLeft: 3,
   },
   badge: {
@@ -225,23 +232,23 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   badgeText: {
+    fontFamily: colors.fontFamily,
     fontSize: 10,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    letterSpacing: 0.2,
+    fontWeight: '600',
+    color: colors.textWhite,
   },
   verticalCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 20,
     overflow: 'hidden',
-    shadowColor: '#1E293B',
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.07,
     shadowRadius: 12,
     elevation: 4,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#F1F5F9',
+    borderColor: colors.tertiary,
   },
   imageContainer: {
     position: 'relative',
@@ -262,7 +269,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.95)',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -278,31 +285,33 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 14,
-    shadowColor: '#000',
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.08,
     shadowRadius: 3,
     elevation: 2,
   },
   verifiedText: {
+    fontFamily: colors.fontFamily,
     fontSize: 10,
-    fontWeight: '700',
-    color: '#2260FF',
+    fontWeight: '600',
+    color: colors.secondary,
     marginLeft: 3,
   },
   cardContent: {
     padding: 14,
   },
   verticalTitle: {
+    fontFamily: colors.fontFamily,
     fontSize: 16,
-    fontWeight: '700',
-    color: '#0F172A',
-    letterSpacing: -0.2,
+    fontWeight: '600',
+    color: colors.primary,
   },
   verticalPrice: {
+    fontFamily: colors.fontFamily,
     fontSize: 17,
-    fontWeight: '800',
-    color: '#2260FF',
+    fontWeight: '700',
+    color: colors.primary,
     marginTop: 4,
   },
   cardFooter: {
@@ -311,6 +320,6 @@ const styles = StyleSheet.create({
     marginTop: 10,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
+    borderTopColor: colors.tertiaryLight,
   },
 });
