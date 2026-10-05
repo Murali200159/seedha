@@ -20,7 +20,17 @@ import colors from '../theme/colors';
 const HERO_IMAGE =
   'https://images.unsplash.com/photo-1723110994499-df46435aa4b3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=800';
 
-const heroSlides = [
+interface HeroSlide {
+  tag: string;
+  heading: string;
+  subText: string;
+  cta1: string;
+  cta2?: string;
+  actionType: string;
+  img: string;
+}
+
+const heroSlides: HeroSlide[] = [
   {
     tag: 'SEARCH PROPERTY',
     heading: 'Find a place that feels like yours.',
@@ -281,7 +291,7 @@ export default function LandingScreen() {
                   source={{ uri: slide.img }}
                   style={[
                     styles.heroImage,
-                    StyleSheet.absoluteFillObject,
+                    StyleSheet.absoluteFill,
                     {
                       opacity: isCurrent ? fadeAnim : 0,
                       transform: [{ scale: isCurrent ? imageScaleAnim : 1 }],
