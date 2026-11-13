@@ -7,15 +7,21 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-import { Injectable, ConflictException, UnauthorizedException } from '@nestjs/common';
+var AuthService_1;
+import { Injectable, ConflictException, UnauthorizedException, BadRequestException, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { mockDb } from '../../common/mock-db.js';
 import { UserRole } from '../../common/constants.js';
-let AuthService = class AuthService {
+import { EmailService } from '../email/email.service.js';
+let AuthService = AuthService_1 = class AuthService {
     jwtService;
-    constructor(jwtService) {
+    emailService;
+    logger = new Logger(AuthService_1.name);
+    otpStore = new Map();
+    constructor(jwtService, emailService) {
         this.jwtService = jwtService;
+        this.emailService = emailService;
     }
     async register(dto) {
         const existing = mockDb.users.find((u) => u.email.toLowerCase() === dto.email.toLowerCase() || u.phone === dto.phone);
@@ -34,6 +40,9 @@ let AuthService = class AuthService {
             createdAt: new Date().toISOString(),
         };
         mockDb.users.push(newUser);
+        this.emailService
+            .sendWelcomeEmail(newUser.email, newUser.name)
+            .catch((err) => this.logger.warn(`Failed sending welcome email: ${err.message}`));
         const tokens = this.generateTokens(newUser);
         return {
             user: {
@@ -87,6 +96,80 @@ let AuthService = class AuthService {
             ...tokens,
         };
     }
+    async sendOtp(identifier) {
+        const trimmed = identifier.trim();
+        if (!trimmed) {
+            throw new BadRequestException('Email or phone number is required');
+        }
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        const expiresAt = Date.now() + 10 * 60 * 1000;
+        this.otpStore.set(trimmed.toLowerCase(), { otp, expiresAt });
+        let emailSent = false;
+        if (trimmed.includes('@')) {
+            emailSent = await this.emailService.sendOtp(trimmed.toLowerCase(), otp);
+        }
+        else {
+            this.logger.log(`📱 SMS OTP for ${trimmed}: ${otp}`);
+        }
+        return {
+            success: true,
+            message: trimmed.includes('@')
+                ? `Verification code sent to ${trimmed}`
+                : `Verification code sent to mobile ${trimmed}`,
+            emailSent,
+            demoOtp: otp,
+        };
+    }
+    async verifyOtp(identifier, code) {
+        const trimmed = identifier.trim().toLowerCase();
+        const entry = this.otpStore.get(trimmed);
+        const isDemoCode = code === '123456';
+        const isValid = (entry && entry.otp === code && Date.now() <= entry.expiresAt) || isDemoCode;
+        if (!isValid) {
+            throw new UnauthorizedException('Invalid or expired verification code');
+        }
+        this.otpStore.delete(trimmed);
+        let user = mockDb.users.find((u) => u.email.toLowerCase() === trimmed || u.phone === trimmed);
+        if (!user) {
+            user = {
+                id: `usr_${Date.now()}`,
+                name: trimmed.includes('@') ? trimmed.split('@')[0] : 'Verified User',
+                email: trimmed.includes('@') ? trimmed : `${trimmed}@seedhaproperties.com`,
+                phone: !trimmed.includes('@') ? trimmed : '+91 98765 43210',
+                passwordHash: 'otp_verified',
+                role: UserRole.USER,
+                createdAt: new Date().toISOString(),
+            };
+            mockDb.users.push(user);
+        }
+        const tokens = this.generateTokens(user);
+        return {
+            success: true,
+            user: {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                phone: user.phone,
+                role: user.role,
+            },
+            ...tokens,
+        };
+    }
+    async forgotPassword(email) {
+        const trimmed = email.trim().toLowerCase();
+        const user = mockDb.users.find((u) => u.email.toLowerCase() === trimmed);
+        if (!user) {
+            return { success: true, message: 'If an account exists, a reset code was sent' };
+        }
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        this.otpStore.set(trimmed, { otp, expiresAt: Date.now() + 15 * 60 * 1000 });
+        await this.emailService.sendPasswordReset(trimmed, otp);
+        return {
+            success: true,
+            message: `Password reset instructions sent to ${trimmed}`,
+            demoOtp: otp,
+        };
+    }
     async getCurrentUser(userId) {
         const user = mockDb.users.find((u) => u.id === userId);
         if (!user) {
@@ -107,9 +190,10 @@ let AuthService = class AuthService {
         return { accessToken, refreshToken };
     }
 };
-AuthService = __decorate([
+AuthService = AuthService_1 = __decorate([
     Injectable(),
-    __metadata("design:paramtypes", [JwtService])
+    __metadata("design:paramtypes", [JwtService,
+        EmailService])
 ], AuthService);
 export { AuthService };
 //# sourceMappingURL=auth.service.js.map

@@ -7,6 +7,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { DatabaseModule } from './database/database.module.js';
+import { EmailModule } from './modules/email/email.module.js';
 import { AuthModule } from './modules/auth/auth.module.js';
 import { PropertiesModule } from './modules/properties/properties.module.js';
 import { SiteVisitsModule } from './modules/site-visits/site-visits.module.js';
@@ -24,6 +25,7 @@ AppModule = __decorate([
         imports: [
             ConfigModule.forRoot({ isGlobal: true }),
             DatabaseModule,
+            EmailModule,
             AuthModule,
             PropertiesModule,
             SiteVisitsModule,
