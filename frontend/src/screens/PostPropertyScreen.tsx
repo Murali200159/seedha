@@ -9,28 +9,35 @@ import {
   StyleSheet,
   SafeAreaView,
   Platform,
+  Modal,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import Svg, { Defs, LinearGradient, Stop, Rect } from 'react-native-svg';
 import {
   ChevronLeft,
+  ChevronRight,
+  ChevronDown,
   House,
   KeyRound,
   Building2,
   Users,
   Building,
-  ChevronRight,
   Store,
   CircleCheck,
+  Check,
+  X,
+  Camera,
+  FileText,
+  ShieldCheck,
 } from 'lucide-react-native';
 import { useApp } from '../context/AppContext';
 import type { AdminCategory } from '../types';
 import { colors } from '../theme/colors';
 
 type PostMode = 'sheet' | 'sell' | 'rent' | 'commercial' | 'flatmate' | 'pg';
-type Step = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
+type Step = 1 | 2 | 3 | 4 | 5 | 6 | 7;
 
-const steps = ['Basics', 'Location', 'Pricing', 'Amenities', 'Photos', 'Documents', 'Preview', 'Submit'];
+const steps = ['Basics', 'Location', 'Pricing', 'Amenities', 'Photos', 'Documents', 'Review'];
 
 const postTypes = [
   {
@@ -75,6 +82,52 @@ const postTypes = [
   },
 ];
 
+const propertyTypeOptions = [
+  'Apartment',
+  'Independent House / Villa',
+  'Builder Floor',
+  'Penthouse',
+  'Plot / Land',
+  'Studio Apartment',
+  'Farmhouse',
+  'Commercial Office',
+];
+
+const parkingOptions = [
+  'Covered',
+  'Open',
+  '1 Covered, 1 Open',
+  '2 Covered',
+  'None',
+];
+
+const propertyAgeOptions = [
+  'Under Construction',
+  '0 - 1 years',
+  '1 - 5 years',
+  '5 - 10 years',
+  '10+ years',
+];
+
+const facingOptions = [
+  'East',
+  'North',
+  'North-East',
+  'West',
+  'South',
+  'North-West',
+  'South-East',
+  'South-West',
+];
+
+const conditionOptions = [
+  'Ready to move',
+  'Under construction',
+  'Newly constructed',
+  'Renovated',
+  'Needs renovation',
+];
+
 const amenityOptions = [
   'Lift',
   'Security',
@@ -87,29 +140,91 @@ const amenityOptions = [
   'Garden',
   'Intercom',
   'WiFi',
-  'Food Included',
+  'Gas Pipeline',
 ];
 
 export default function PostPropertyScreen() {
   const { pop, addAdminRequest, user } = useApp();
   const [mode, setMode] = useState<PostMode>('sheet');
   const [step, setStep] = useState<Step>(1);
+
+  // Form State
   const [form, setForm] = useState({
-    type: '',
-    bhk: '',
-    area: '',
+    // Step 1 - Basics
+    propertyType: '',
     title: '',
-    city: 'Hyderabad',
+    description: '',
+    bhk: '',
+    bathrooms: '',
+    balconies: '',
+    furnishing: '',
+    parking: '',
+    propertyAge: '',
+    floorNo: '',
+    totalFloors: '',
+    facing: '',
+    condition: '',
+    superBuiltUpArea: '',
+    carpetArea: '',
+
+    // Step 2 - Location
     locality: '',
     society: '',
+    city: 'Hyderabad',
+    landmark: '',
+
+    // Step 3 - Pricing
     price: '',
     deposit: '',
     maintenance: '',
+
+    // Step 4 - Amenities
     amenities: [] as string[],
-    photos: 0,
+
+    // Step 5 - Photos
+    photosCount: 2,
+
+    // Step 6 - Documents
+    ownership: 'Freehold',
+    reraId: '',
   });
+
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // Picker modal state
+  const [pickerModal, setPickerModal] = useState<{
+    visible: boolean;
+    title: string;
+    options: string[];
+    selectedValue: string;
+    onSelect: (val: string) => void;
+  }>({
+    visible: false,
+    title: '',
+    options: [],
+    selectedValue: '',
+    onSelect: () => {},
+  });
+
+  const openPicker = (
+    title: string,
+    options: string[],
+    selectedValue: string,
+    onSelect: (val: string) => void
+  ) => {
+    setPickerModal({
+      visible: true,
+      title,
+      options,
+      selectedValue,
+      onSelect,
+    });
+  };
+
+  const closePicker = () => {
+    setPickerModal(p => ({ ...p, visible: false }));
+  };
 
   const handleSubmit = () => {
     setLoading(true);
@@ -119,7 +234,7 @@ export default function PostPropertyScreen() {
 
     const computedTitle =
       form.title ||
-      `${form.bhk ? form.bhk + ' BHK ' : ''}${form.type || (mode === 'pg' ? 'PG Room' : mode === 'flatmate' ? 'Flatmate Room' : 'Property')} in ${
+      `${form.bhk ? form.bhk + ' BHK ' : ''}${form.propertyType || (mode === 'pg' ? 'PG Room' : mode === 'flatmate' ? 'Flatmate Room' : 'Property')} in ${
         form.locality || 'Hyderabad'
       }`;
     const computedLocation = `${form.locality ? form.locality + ', ' : ''}${form.city || 'Hyderabad'}`;
@@ -144,13 +259,19 @@ export default function PostPropertyScreen() {
         amount: computedAmount,
         details: {
           listingMode: mode,
-          propertyType: form.type || (mode === 'pg' ? 'PG / Hostel' : 'Apartment'),
-          bhk: form.bhk || '2 BHK',
-          carpetArea: form.area ? `${form.area} sq.ft` : '1,350 sq.ft',
+          propertyType: form.propertyType || (mode === 'pg' ? 'PG / Hostel' : 'Apartment'),
+          bhk: form.bhk ? `${form.bhk} BHK` : '2 BHK',
+          carpetArea: form.carpetArea ? `${form.carpetArea} sq.ft` : '1,350 sq.ft',
+          superBuiltUpArea: form.superBuiltUpArea ? `${form.superBuiltUpArea} sq.ft` : '',
           society: form.society || 'Green Heights',
           deposit: form.deposit,
           maintenance: form.maintenance,
           amenities: form.amenities,
+          furnishing: form.furnishing,
+          facing: form.facing,
+          condition: form.condition,
+          propertyAge: form.propertyAge,
+          parking: form.parking,
         },
       });
     }
@@ -158,7 +279,7 @@ export default function PostPropertyScreen() {
     setTimeout(() => {
       setLoading(false);
       setSubmitted(true);
-    }, 1500);
+    }, 1200);
   };
 
   if (submitted) {
@@ -169,8 +290,8 @@ export default function PostPropertyScreen() {
         </View>
         <Text style={styles.successTitle}>Property Submitted!</Text>
         <Text style={styles.successSubtitle}>
-          Your property is under review. Our team will contact you within 24-48 hours to verify and activate the
-          listing.
+          Your listing has been submitted for verification. Our review team will verify and activate your
+          property within 24 hours.
         </Text>
         <TouchableOpacity onPress={pop} style={styles.backHomeButton} activeOpacity={0.8}>
           <Text style={styles.backHomeButtonText}>Back to Home</Text>
@@ -179,7 +300,7 @@ export default function PostPropertyScreen() {
     );
   }
 
-  // Exact UI design matching SVG and Screenshot
+  // 1. Initial "Choose what you want to post" Sheet
   if (mode === 'sheet') {
     return (
       <SafeAreaView style={styles.safeContainer}>
@@ -260,14 +381,8 @@ export default function PostPropertyScreen() {
       ? 'Flatmates'
       : 'PG / Hostel';
 
-  const typeList =
-    mode === 'pg'
-      ? ['Single Room', 'Double Sharing', 'Triple Sharing', 'Hostel Bed', 'Entire Floor', 'Coliving']
-      : mode === 'flatmate'
-      ? ['Room in 2 BHK', 'Room in 3 BHK', 'Shared Room', 'Master Bedroom', 'Studio Room']
-      : mode === 'commercial'
-      ? ['Office', 'Shop', 'Showroom', 'Warehouse', 'Co-working', 'Commercial Land']
-      : ['Apartment', 'Villa', 'Independent House', 'Plot', 'Penthouse', 'Builder Floor'];
+  // Step percentage: Step 1 is 14% (1/7), Step 2 is 29%, Step 7 is 100%
+  const stepPercentage = Math.round((step / 7) * 100);
 
   return (
     <SafeAreaView style={styles.safeContainer}>
@@ -285,118 +400,345 @@ export default function PostPropertyScreen() {
           <View style={styles.formHeaderTitleCol}>
             <Text style={styles.formHeaderTitle}>Post to {modeLabel}</Text>
             <Text style={styles.formHeaderSub}>
-              Step {step} of {steps.length} • {steps[step - 1]}
+              Step {step} of 7 · {steps[step - 1]}
             </Text>
           </View>
-          <Text style={styles.percentageText}>{Math.round((step / 8) * 100)}%</Text>
+          <Text style={styles.percentageText}>{stepPercentage}%</Text>
         </View>
 
-        {/* Progress Bar */}
-        <View style={styles.progressBarWrapper}>
-          <View style={styles.progressBarBackground}>
-            <View style={[styles.progressBarFill, { width: `${(step / 8) * 100}%` }]} />
-          </View>
+        {/* 7-Segment Progress Bar */}
+        <View style={styles.segmentBarRow}>
+          {[1, 2, 3, 4, 5, 6, 7].map(seg => (
+            <View
+              key={seg}
+              style={[
+                styles.segmentBar,
+                seg <= step ? styles.segmentBarActive : styles.segmentBarInactive,
+              ]}
+            />
+          ))}
         </View>
 
-        <ScrollView style={styles.formScroll} showsVerticalScrollIndicator={false}>
+        {/* Scrollable Form Body */}
+        <ScrollView
+          style={styles.formScroll}
+          contentContainerStyle={styles.formScrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* STEP 1: BASICS */}
           {step === 1 && (
-            <View style={styles.stepContainer}>
-              <Text style={styles.stepHeading}>Property Basics</Text>
-              <Text style={styles.inputLabel}>
-                {mode === 'pg' ? 'Sharing / Room Type' : mode === 'flatmate' ? 'Flatmate Room Type' : 'Property Type'}
-              </Text>
-              <View style={styles.typeGrid}>
-                {typeList.map(t => (
-                  <TouchableOpacity
-                    key={t}
-                    onPress={() => setForm(f => ({ ...f, type: t }))}
-                    style={[styles.typeOption, form.type === t ? styles.selectedOption : styles.unselectedOption]}
-                    activeOpacity={0.8}
-                  >
-                    <Text
-                      style={[
-                        styles.optionText,
-                        form.type === t ? styles.selectedOptionText : styles.unselectedOptionText,
-                      ]}
-                    >
-                      {t}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+            <View style={styles.stepFormContent}>
+              {/* 1. Property Type */}
+              <View style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>Property Type</Text>
+                <TouchableOpacity
+                  style={styles.selectInput}
+                  activeOpacity={0.7}
+                  onPress={() =>
+                    openPicker('Property Type', propertyTypeOptions, form.propertyType, val =>
+                      setForm(f => ({ ...f, propertyType: val }))
+                    )
+                  }
+                >
+                  <Text style={[styles.selectText, !form.propertyType && styles.placeholderText]}>
+                    {form.propertyType || 'Select'}
+                  </Text>
+                  <ChevronDown size={18} color="#6B7280" />
+                </TouchableOpacity>
               </View>
 
-              {mode !== 'commercial' && mode !== 'pg' && (
-                <View style={styles.fieldGroup}>
-                  <Text style={styles.inputLabel}>BHK Configuration</Text>
-                  <View style={styles.bhkRow}>
-                    {['1', '2', '3', '4', '5+'].map(b => (
+              {/* 2. Property title */}
+              <View style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>Property title</Text>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="Write a clear listing title"
+                  placeholderTextColor="#9CA3AF"
+                  value={form.title}
+                  onChangeText={text => setForm(f => ({ ...f, title: text }))}
+                />
+              </View>
+
+              {/* 3. Property description */}
+              <View style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>Property description</Text>
+                <TextInput
+                  style={styles.textAreaInput}
+                  placeholder="Describe the property, highlights and neighbourhood"
+                  placeholderTextColor="#9CA3AF"
+                  multiline
+                  numberOfLines={4}
+                  textAlignVertical="top"
+                  value={form.description}
+                  onChangeText={text => setForm(f => ({ ...f, description: text }))}
+                />
+              </View>
+
+              {/* 4. BHK */}
+              <View style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>BHK</Text>
+                <View style={styles.bhkRow}>
+                  {['1', '2', '3', '4', '5+'].map(b => {
+                    const isSelected = form.bhk === b;
+                    return (
                       <TouchableOpacity
                         key={b}
-                        onPress={() => setForm(f => ({ ...f, bhk: b }))}
-                        style={[styles.bhkOption, form.bhk === b ? styles.selectedOption : styles.unselectedOption]}
+                        onPress={() => setForm(f => ({ ...f, bhk: isSelected ? '' : b }))}
+                        style={[styles.bhkCircle, isSelected && styles.bhkCircleSelected]}
+                        activeOpacity={0.8}
+                      >
+                        <Text style={[styles.bhkText, isSelected && styles.bhkTextSelected]}>
+                          {b}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+
+              {/* 5. Bathrooms & Balconies (2 columns) */}
+              <View style={styles.twoColRow}>
+                <View style={styles.colHalf}>
+                  <Text style={styles.fieldLabel}>Bathrooms</Text>
+                  <TextInput
+                    style={styles.textInput}
+                    placeholder=""
+                    placeholderTextColor="#9CA3AF"
+                    keyboardType="numeric"
+                    value={form.bathrooms}
+                    onChangeText={text => setForm(f => ({ ...f, bathrooms: text }))}
+                  />
+                </View>
+                <View style={styles.colHalf}>
+                  <Text style={styles.fieldLabel}>Balconies</Text>
+                  <TextInput
+                    style={styles.textInput}
+                    placeholder=""
+                    placeholderTextColor="#9CA3AF"
+                    keyboardType="numeric"
+                    value={form.balconies}
+                    onChangeText={text => setForm(f => ({ ...f, balconies: text }))}
+                  />
+                </View>
+              </View>
+
+              {/* 6. Furnishing status */}
+              <View style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>Furnishing status</Text>
+                <View style={styles.pillsRow}>
+                  {['Fully Furnished', 'Semi-Furnished', 'Unfurnished'].map(item => {
+                    const isSelected = form.furnishing === item;
+                    return (
+                      <TouchableOpacity
+                        key={item}
+                        onPress={() => setForm(f => ({ ...f, furnishing: isSelected ? '' : item }))}
+                        style={[styles.furnishPill, isSelected && styles.furnishPillSelected]}
                         activeOpacity={0.8}
                       >
                         <Text
                           style={[
-                            styles.optionText,
-                            form.bhk === b ? styles.selectedOptionText : styles.unselectedOptionText,
+                            styles.furnishText,
+                            isSelected && styles.furnishTextSelected,
                           ]}
                         >
-                          {b} BHK
+                          {item}
                         </Text>
                       </TouchableOpacity>
-                    ))}
-                  </View>
+                    );
+                  })}
                 </View>
-              )}
+              </View>
 
+              {/* 7. Parking availability */}
               <View style={styles.fieldGroup}>
-                <Text style={styles.inputLabel}>Approx Carpet Area (sq.ft)</Text>
-                <TextInput
-                  style={styles.textInput}
-                  placeholder="e.g. 1200"
-                  placeholderTextColor={colors.textMuted}
-                  keyboardType="numeric"
-                  value={form.area}
-                  onChangeText={text => setForm(f => ({ ...f, area: text }))}
-                />
+                <Text style={styles.fieldLabel}>Parking availability</Text>
+                <TouchableOpacity
+                  style={styles.selectInput}
+                  activeOpacity={0.7}
+                  onPress={() =>
+                    openPicker('Parking availability', parkingOptions, form.parking, val =>
+                      setForm(f => ({ ...f, parking: val }))
+                    )
+                  }
+                >
+                  <Text style={[styles.selectText, !form.parking && styles.placeholderText]}>
+                    {form.parking || 'Select'}
+                  </Text>
+                  <ChevronDown size={18} color="#6B7280" />
+                </TouchableOpacity>
+              </View>
+
+              {/* 8. Property age & Floor number (2 columns) */}
+              <View style={styles.twoColRow}>
+                <View style={styles.colHalf}>
+                  <Text style={styles.fieldLabel}>Property age</Text>
+                  <TouchableOpacity
+                    style={styles.selectInput}
+                    activeOpacity={0.7}
+                    onPress={() =>
+                      openPicker('Property age', propertyAgeOptions, form.propertyAge, val =>
+                        setForm(f => ({ ...f, propertyAge: val }))
+                      )
+                    }
+                  >
+                    <Text
+                      style={[styles.selectText, !form.propertyAge && styles.placeholderText]}
+                      numberOfLines={1}
+                    >
+                      {form.propertyAge || 'Select'}
+                    </Text>
+                    <ChevronDown size={18} color="#6B7280" />
+                  </TouchableOpacity>
+                </View>
+                <View style={styles.colHalf}>
+                  <Text style={styles.fieldLabel}>Floor number</Text>
+                  <TextInput
+                    style={styles.textInput}
+                    placeholder=""
+                    placeholderTextColor="#9CA3AF"
+                    keyboardType="numeric"
+                    value={form.floorNo}
+                    onChangeText={text => setForm(f => ({ ...f, floorNo: text }))}
+                  />
+                </View>
+              </View>
+
+              {/* 9. Total floors & Facing direction (2 columns) */}
+              <View style={styles.twoColRow}>
+                <View style={styles.colHalf}>
+                  <Text style={styles.fieldLabel}>Total floors</Text>
+                  <TextInput
+                    style={styles.textInput}
+                    placeholder=""
+                    placeholderTextColor="#9CA3AF"
+                    keyboardType="numeric"
+                    value={form.totalFloors}
+                    onChangeText={text => setForm(f => ({ ...f, totalFloors: text }))}
+                  />
+                </View>
+                <View style={styles.colHalf}>
+                  <Text style={styles.fieldLabel}>Facing direction</Text>
+                  <TouchableOpacity
+                    style={styles.selectInput}
+                    activeOpacity={0.7}
+                    onPress={() =>
+                      openPicker('Facing direction', facingOptions, form.facing, val =>
+                        setForm(f => ({ ...f, facing: val }))
+                      )
+                    }
+                  >
+                    <Text
+                      style={[styles.selectText, !form.facing && styles.placeholderText]}
+                      numberOfLines={1}
+                    >
+                      {form.facing || 'Select'}
+                    </Text>
+                    <ChevronDown size={18} color="#6B7280" />
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              {/* 10. Current property condition */}
+              <View style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>Current property condition</Text>
+                <TouchableOpacity
+                  style={styles.selectInput}
+                  activeOpacity={0.7}
+                  onPress={() =>
+                    openPicker('Current property condition', conditionOptions, form.condition, val =>
+                      setForm(f => ({ ...f, condition: val }))
+                    )
+                  }
+                >
+                  <Text style={[styles.selectText, !form.condition && styles.placeholderText]}>
+                    {form.condition || 'Select'}
+                  </Text>
+                  <ChevronDown size={18} color="#6B7280" />
+                </TouchableOpacity>
+              </View>
+
+              {/* 11. Super built-up area (sq.ft.) & Carpet area (sq.ft.) (2 columns) */}
+              <View style={styles.twoColRow}>
+                <View style={styles.colHalf}>
+                  <Text style={styles.fieldLabel}>Super built-up area (sq.ft.)</Text>
+                  <TextInput
+                    style={styles.textInput}
+                    placeholder=""
+                    placeholderTextColor="#9CA3AF"
+                    keyboardType="numeric"
+                    value={form.superBuiltUpArea}
+                    onChangeText={text => setForm(f => ({ ...f, superBuiltUpArea: text }))}
+                  />
+                </View>
+                <View style={styles.colHalf}>
+                  <Text style={styles.fieldLabel}>Carpet area (sq.ft.)</Text>
+                  <TextInput
+                    style={styles.textInput}
+                    placeholder=""
+                    placeholderTextColor="#9CA3AF"
+                    keyboardType="numeric"
+                    value={form.carpetArea}
+                    onChangeText={text => setForm(f => ({ ...f, carpetArea: text }))}
+                  />
+                </View>
               </View>
             </View>
           )}
 
+          {/* STEP 2: LOCATION */}
           {step === 2 && (
-            <View style={styles.stepContainer}>
-              <Text style={styles.stepHeading}>Location Details</Text>
+            <View style={styles.stepFormContent}>
               <View style={styles.fieldGroup}>
-                <Text style={styles.inputLabel}>Locality / Area</Text>
+                <Text style={styles.fieldLabel}>Locality / Area</Text>
                 <TextInput
                   style={styles.textInput}
                   placeholder="e.g. Madhapur, Kondapur, Gachibowli"
-                  placeholderTextColor={colors.textMuted}
+                  placeholderTextColor="#9CA3AF"
                   value={form.locality}
                   onChangeText={text => setForm(f => ({ ...f, locality: text }))}
                 />
               </View>
               <View style={styles.fieldGroup}>
-                <Text style={styles.inputLabel}>Society / Apartment / Building Name</Text>
+                <Text style={styles.fieldLabel}>Society / Project / Building Name</Text>
                 <TextInput
                   style={styles.textInput}
-                  placeholder="e.g. Vasavi Towers or Green PG"
-                  placeholderTextColor={colors.textMuted}
+                  placeholder="e.g. My Home Bhooja, Rainbow Vistas"
+                  placeholderTextColor="#9CA3AF"
                   value={form.society}
                   onChangeText={text => setForm(f => ({ ...f, society: text }))}
+                />
+              </View>
+              <View style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>City</Text>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="Hyderabad"
+                  placeholderTextColor="#9CA3AF"
+                  value={form.city}
+                  onChangeText={text => setForm(f => ({ ...f, city: text }))}
+                />
+              </View>
+              <View style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>Landmark / Street (Optional)</Text>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="Near Metro Station or Tech Park"
+                  placeholderTextColor="#9CA3AF"
+                  value={form.landmark}
+                  onChangeText={text => setForm(f => ({ ...f, landmark: text }))}
                 />
               </View>
             </View>
           )}
 
+          {/* STEP 3: PRICING */}
           {step === 3 && (
-            <View style={styles.stepContainer}>
-              <Text style={styles.stepHeading}>Pricing & Deposit</Text>
+            <View style={styles.stepFormContent}>
               <View style={styles.fieldGroup}>
-                <Text style={styles.inputLabel}>
+                <Text style={styles.fieldLabel}>
                   {mode === 'rent' || mode === 'flatmate' || mode === 'pg'
-                    ? 'Monthly Rent / Charge (₹)'
+                    ? 'Expected Monthly Rent (₹)'
                     : 'Expected Price (₹)'}
                 </Text>
                 <TextInput
@@ -407,23 +749,35 @@ export default function PostPropertyScreen() {
                       : mode === 'flatmate'
                       ? '12,000'
                       : mode === 'rent'
-                      ? '25,000'
-                      : '75,00,000'
+                      ? '35,000'
+                      : '85,00,000'
                   }
-                  placeholderTextColor={colors.textMuted}
+                  placeholderTextColor="#9CA3AF"
                   keyboardType="numeric"
                   value={form.price}
                   onChangeText={text => setForm(f => ({ ...f, price: text }))}
                 />
               </View>
 
+              <View style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>Monthly Maintenance (₹)</Text>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="e.g. 3,500"
+                  placeholderTextColor="#9CA3AF"
+                  keyboardType="numeric"
+                  value={form.maintenance}
+                  onChangeText={text => setForm(f => ({ ...f, maintenance: text }))}
+                />
+              </View>
+
               {(mode === 'rent' || mode === 'flatmate' || mode === 'pg') && (
                 <View style={styles.fieldGroup}>
-                  <Text style={styles.inputLabel}>Security Deposit (₹)</Text>
+                  <Text style={styles.fieldLabel}>Security Deposit (₹)</Text>
                   <TextInput
                     style={styles.textInput}
-                    placeholder="e.g. 20,000"
-                    placeholderTextColor={colors.textMuted}
+                    placeholder="e.g. 50,000"
+                    placeholderTextColor="#9CA3AF"
                     keyboardType="numeric"
                     value={form.deposit}
                     onChangeText={text => setForm(f => ({ ...f, deposit: text }))}
@@ -433,9 +787,10 @@ export default function PostPropertyScreen() {
             </View>
           )}
 
+          {/* STEP 4: AMENITIES */}
           {step === 4 && (
-            <View style={styles.stepContainer}>
-              <Text style={styles.stepHeading}>Amenities & Facilities</Text>
+            <View style={styles.stepFormContent}>
+              <Text style={styles.fieldLabel}>Select Available Amenities</Text>
               <View style={styles.amenityWrap}>
                 {amenityOptions.map(a => {
                   const selected = form.amenities.includes(a);
@@ -445,17 +800,20 @@ export default function PostPropertyScreen() {
                       onPress={() =>
                         setForm(f => ({
                           ...f,
-                          amenities: selected ? f.amenities.filter(x => x !== a) : [...f.amenities, a],
+                          amenities: selected
+                            ? f.amenities.filter(x => x !== a)
+                            : [...f.amenities, a],
                         }))
                       }
-                      style={[styles.amenityChip, selected ? styles.selectedOption : styles.unselectedOption]}
+                      style={[styles.amenityChip, selected && styles.amenityChipSelected]}
                       activeOpacity={0.8}
                     >
                       <Text
-                        style={[styles.optionText, selected ? styles.selectedOptionText : styles.unselectedOptionText]}
+                        style={[styles.amenityText, selected && styles.amenityTextSelected]}
                       >
                         {a}
                       </Text>
+                      {selected && <Check size={14} color="#FFFFFF" style={{ marginLeft: 6 }} />}
                     </TouchableOpacity>
                   );
                 })}
@@ -463,38 +821,217 @@ export default function PostPropertyScreen() {
             </View>
           )}
 
-          {step >= 5 && (
-            <View style={styles.stepContainer}>
-              <Text style={styles.stepHeading}>Review & Complete</Text>
-              <Text style={styles.stepSub}>Ready to submit your {modeLabel} listing in Hyderabad</Text>
-              <View style={styles.reviewCard}>
-                <Text style={styles.reviewTitle}>
-                  {form.title || `${form.type || modeLabel} in ${form.locality || 'Hyderabad'}`}
+          {/* STEP 5: PHOTOS */}
+          {step === 5 && (
+            <View style={styles.stepFormContent}>
+              <Text style={styles.fieldLabel}>Upload Photos</Text>
+              <Text style={styles.fieldSubLabel}>
+                High quality photos increase buyer inquiries by up to 3x.
+              </Text>
+              <View style={styles.photoUploadBox}>
+                <Camera size={36} color="#4B5563" />
+                <Text style={styles.uploadMainText}>Add Property Photos</Text>
+                <Text style={styles.uploadSubText}>Living Room, Bedrooms, Kitchen, Balcony</Text>
+                <TouchableOpacity
+                  style={styles.uploadActionBtn}
+                  activeOpacity={0.8}
+                  onPress={() => setForm(f => ({ ...f, photosCount: f.photosCount + 1 }))}
+                >
+                  <Text style={styles.uploadActionBtnText}>Select Photos ({form.photosCount} added)</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
+          {/* STEP 6: DOCUMENTS */}
+          {step === 6 && (
+            <View style={styles.stepFormContent}>
+              <Text style={styles.fieldLabel}>Ownership & Verification</Text>
+              <View style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>Ownership Type</Text>
+                <View style={styles.pillsRow}>
+                  {['Freehold', 'Leasehold', 'Power of Attorney'].map(item => {
+                    const isSelected = form.ownership === item;
+                    return (
+                      <TouchableOpacity
+                        key={item}
+                        onPress={() => setForm(f => ({ ...f, ownership: item }))}
+                        style={[styles.furnishPill, isSelected && styles.furnishPillSelected]}
+                        activeOpacity={0.8}
+                      >
+                        <Text
+                          style={[
+                            styles.furnishText,
+                            isSelected && styles.furnishTextSelected,
+                          ]}
+                        >
+                          {item}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+
+              <View style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>RERA ID (Optional)</Text>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="e.g. P02400001234"
+                  placeholderTextColor="#9CA3AF"
+                  value={form.reraId}
+                  onChangeText={text => setForm(f => ({ ...f, reraId: text }))}
+                />
+              </View>
+
+              <View style={styles.docVerifyNotice}>
+                <ShieldCheck size={24} color="#047857" />
+                <View style={{ flex: 1, marginLeft: 12 }}>
+                  <Text style={styles.docNoticeTitle}>Verified Owner Protection</Text>
+                  <Text style={styles.docNoticeSub}>
+                    Seedha Properties verifies all listings directly with municipal records to prevent spam.
+                  </Text>
+                </View>
+              </View>
+            </View>
+          )}
+
+          {/* STEP 7: REVIEW */}
+          {step === 7 && (
+            <View style={styles.stepFormContent}>
+              <Text style={styles.reviewHeaderTitle}>Review Listing Summary</Text>
+              <Text style={styles.reviewHeaderSub}>
+                Please check all your listing details before submitting.
+              </Text>
+
+              <View style={styles.reviewSummaryCard}>
+                <Text style={styles.reviewPropertyTitle}>
+                  {form.title || `${form.bhk ? form.bhk + ' BHK ' : ''}${form.propertyType || 'Apartment'} in ${form.locality || 'Hyderabad'}`}
                 </Text>
-                <Text style={styles.reviewMeta}>
-                  {form.price ? `₹${form.price}` : 'Pricing on request'} •{' '}
-                  {form.locality ? form.locality : 'Hyderabad'}
-                </Text>
+
+                <View style={styles.reviewGrid}>
+                  <View style={styles.reviewGridItem}>
+                    <Text style={styles.reviewGridLabel}>Property Type</Text>
+                    <Text style={styles.reviewGridVal}>{form.propertyType || 'Apartment'}</Text>
+                  </View>
+                  <View style={styles.reviewGridItem}>
+                    <Text style={styles.reviewGridLabel}>BHK</Text>
+                    <Text style={styles.reviewGridVal}>{form.bhk ? `${form.bhk} BHK` : '2 BHK'}</Text>
+                  </View>
+                  <View style={styles.reviewGridItem}>
+                    <Text style={styles.reviewGridLabel}>Expected Price</Text>
+                    <Text style={styles.reviewGridVal}>{form.price ? `₹${form.price}` : '₹85 Lakhs'}</Text>
+                  </View>
+                  <View style={styles.reviewGridItem}>
+                    <Text style={styles.reviewGridLabel}>Carpet Area</Text>
+                    <Text style={styles.reviewGridVal}>{form.carpetArea ? `${form.carpetArea} sq.ft` : '1,200 sq.ft'}</Text>
+                  </View>
+                  <View style={styles.reviewGridItem}>
+                    <Text style={styles.reviewGridLabel}>Furnishing</Text>
+                    <Text style={styles.reviewGridVal}>{form.furnishing || 'Semi-Furnished'}</Text>
+                  </View>
+                  <View style={styles.reviewGridItem}>
+                    <Text style={styles.reviewGridLabel}>Condition</Text>
+                    <Text style={styles.reviewGridVal}>{form.condition || 'Ready to move'}</Text>
+                  </View>
+                  <View style={styles.reviewGridItem}>
+                    <Text style={styles.reviewGridLabel}>Facing</Text>
+                    <Text style={styles.reviewGridVal}>{form.facing || 'East'}</Text>
+                  </View>
+                  <View style={styles.reviewGridItem}>
+                    <Text style={styles.reviewGridLabel}>Location</Text>
+                    <Text style={styles.reviewGridVal}>{form.locality || 'Hyderabad'}</Text>
+                  </View>
+                </View>
               </View>
             </View>
           )}
         </ScrollView>
 
-        {/* Footer CTA */}
-        <View style={styles.footerContainer}>
+        {/* Bottom Action Footer matching design */}
+        <View style={styles.footerRow}>
           <TouchableOpacity
-            onPress={() => (step < 8 ? setStep(s => (s + 1) as Step) : handleSubmit())}
-            disabled={loading}
+            style={styles.draftButton}
+            activeOpacity={0.8}
+            onPress={() => {
+              pop();
+            }}
+          >
+            <Text style={styles.draftButtonText}>Save draft</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
             style={styles.continueButton}
             activeOpacity={0.9}
+            disabled={loading}
+            onPress={() => {
+              if (step < 7) {
+                setStep(s => (s + 1) as Step);
+              } else {
+                handleSubmit();
+              }
+            }}
           >
             {loading ? (
-              <ActivityIndicator color={colors.textWhite} />
+              <ActivityIndicator color="#FFFFFF" />
             ) : (
-              <Text style={styles.continueButtonText}>{step < 8 ? 'Continue' : 'Submit Property'}</Text>
+              <Text style={styles.continueButtonText}>
+                {step < 7 ? 'Continue' : 'Submit Property'}
+              </Text>
             )}
           </TouchableOpacity>
         </View>
+
+        {/* Dropdown Modal Bottom Sheet */}
+        <Modal
+          visible={pickerModal.visible}
+          transparent
+          animationType="fade"
+          onRequestClose={closePicker}
+        >
+          <TouchableOpacity
+            style={styles.modalOverlay}
+            activeOpacity={1}
+            onPress={closePicker}
+          >
+            <View style={styles.modalSheet} onStartShouldSetResponder={() => true}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>{pickerModal.title}</Text>
+                <TouchableOpacity
+                  onPress={closePicker}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                  <X size={20} color="#6B7280" />
+                </TouchableOpacity>
+              </View>
+              <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false}>
+                {pickerModal.options.map(opt => {
+                  const isSelected = pickerModal.selectedValue === opt;
+                  return (
+                    <TouchableOpacity
+                      key={opt}
+                      style={[styles.modalOptionRow, isSelected && styles.modalOptionSelected]}
+                      onPress={() => {
+                        pickerModal.onSelect(opt);
+                        closePicker();
+                      }}
+                    >
+                      <Text
+                        style={[
+                          styles.modalOptionText,
+                          isSelected && styles.modalOptionTextSelected,
+                        ]}
+                      >
+                        {opt}
+                      </Text>
+                      {isSelected && <Check size={18} color="#000000" />}
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            </View>
+          </TouchableOpacity>
+        </Modal>
       </View>
     </SafeAreaView>
   );
@@ -526,9 +1063,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.08,
-    shadowRadius: 4,
+    shadowRadius: 3,
     elevation: 2,
   },
   sheetHeaderTextWrap: {
@@ -646,150 +1183,411 @@ const styles = StyleSheet.create({
   },
   percentageText: {
     fontSize: 13,
-    fontWeight: '700',
-    color: colors.primary,
+    fontWeight: '600',
+    color: '#111827',
   },
-  progressBarWrapper: {
+  segmentBarRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 16,
-    marginBottom: 12,
+    gap: 6,
+    marginBottom: 14,
   },
-  progressBarBackground: {
-    height: 6,
+  segmentBar: {
+    flex: 1,
+    height: 5,
+    borderRadius: 3,
+  },
+  segmentBarActive: {
+    backgroundColor: '#000000',
+  },
+  segmentBarInactive: {
     backgroundColor: '#E5E7EB',
-    borderRadius: 3,
-    overflow: 'hidden',
-  },
-  progressBarFill: {
-    height: '100%',
-    backgroundColor: colors.primary,
-    borderRadius: 3,
   },
   formScroll: {
     flex: 1,
+  },
+  formScrollContent: {
     paddingHorizontal: 16,
+    paddingBottom: 30,
   },
-  stepContainer: {
-    paddingVertical: 10,
-  },
-  stepHeading: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: 12,
-  },
-  stepSub: {
-    fontSize: 13,
-    color: '#6B7280',
-    marginBottom: 12,
-  },
-  inputLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#374151',
-    marginBottom: 8,
-  },
-  typeGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  typeOption: {
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minWidth: '30%',
+  stepFormContent: {
+    paddingBottom: 10,
   },
   fieldGroup: {
-    marginTop: 16,
+    marginTop: 14,
   },
-  bhkRow: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  bhkOption: {
-    flex: 1,
-    paddingVertical: 11,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  selectedOption: {
-    backgroundColor: colors.primary,
-  },
-  unselectedOption: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    elevation: 1,
-  },
-  optionText: {
+  fieldLabel: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '500',
+    color: '#4B5563',
+    marginBottom: 8,
   },
-  selectedOptionText: {
-    color: '#FFFFFF',
-  },
-  unselectedOptionText: {
-    color: '#1F2937',
+  fieldSubLabel: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginBottom: 12,
+    marginTop: -4,
   },
   textInput: {
     backgroundColor: '#FFFFFF',
     borderRadius: 14,
     paddingHorizontal: 16,
     height: 48,
-    fontSize: 15,
+    fontSize: 14,
     color: '#111827',
     borderWidth: 1,
     borderColor: '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 2,
     elevation: 1,
+  },
+  textAreaInput: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    height: 100,
+    fontSize: 14,
+    color: '#111827',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  selectInput: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    height: 48,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  selectText: {
+    fontSize: 14,
+    color: '#111827',
+    fontWeight: '500',
+    flex: 1,
+  },
+  placeholderText: {
+    color: '#9CA3AF',
+    fontWeight: '400',
+  },
+  bhkRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  bhkCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    elevation: 1,
+  },
+  bhkCircleSelected: {
+    backgroundColor: '#000000',
+    borderColor: '#000000',
+  },
+  bhkText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#374151',
+  },
+  bhkTextSelected: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+  },
+  twoColRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 14,
+  },
+  colHalf: {
+    flex: 1,
+  },
+  pillsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  furnishPill: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    elevation: 1,
+  },
+  furnishPillSelected: {
+    backgroundColor: '#000000',
+    borderColor: '#000000',
+  },
+  furnishText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#374151',
+  },
+  furnishTextSelected: {
+    color: '#FFFFFF',
+    fontWeight: '600',
   },
   amenityWrap: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
+    marginTop: 6,
   },
   amenityChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 14,
-    paddingVertical: 9,
-    borderRadius: 12,
-  },
-  reviewCard: {
+    paddingVertical: 10,
+    borderRadius: 14,
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
     borderWidth: 1,
     borderColor: '#E5E7EB',
-    marginTop: 10,
   },
-  reviewTitle: {
+  amenityChipSelected: {
+    backgroundColor: '#000000',
+    borderColor: '#000000',
+  },
+  amenityText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#374151',
+  },
+  amenityTextSelected: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+  },
+  photoUploadBox: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    borderWidth: 1.5,
+    borderColor: '#D1D5DB',
+    borderStyle: 'dashed',
+    padding: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 8,
+  },
+  uploadMainText: {
     fontSize: 16,
     fontWeight: '700',
     color: '#111827',
+    marginTop: 10,
   },
-  reviewMeta: {
-    fontSize: 13,
+  uploadSubText: {
+    fontSize: 12,
     color: '#6B7280',
     marginTop: 4,
+    textAlign: 'center',
   },
-  footerContainer: {
-    padding: 16,
+  uploadActionBtn: {
+    marginTop: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: '#F3F4F6',
+  },
+  uploadActionBtnText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#111827',
+  },
+  docVerifyNotice: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ECFDF5',
+    borderRadius: 14,
+    padding: 14,
+    marginTop: 16,
+    borderWidth: 1,
+    borderColor: '#A7F3D0',
+  },
+  docNoticeTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#065F46',
+  },
+  docNoticeSub: {
+    fontSize: 12,
+    color: '#047857',
+    marginTop: 2,
+    lineHeight: 16,
+  },
+  reviewHeaderTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 4,
+  },
+  reviewHeaderSub: {
+    fontSize: 13,
+    color: '#6B7280',
+    marginBottom: 16,
+  },
+  reviewSummaryCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    padding: 18,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  reviewPropertyTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#111827',
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+    marginBottom: 12,
+  },
+  reviewGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  reviewGridItem: {
+    width: '47%',
+    marginBottom: 6,
+  },
+  reviewGridLabel: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: '#6B7280',
+    textTransform: 'uppercase',
+  },
+  reviewGridVal: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#111827',
+    marginTop: 2,
+  },
+  footerRow: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: Platform.OS === 'ios' ? 24 : 16,
+    gap: 12,
     backgroundColor: '#ECEEF5',
     borderTopWidth: 1,
     borderTopColor: '#E2E5EE',
   },
-  continueButton: {
-    height: 50,
-    borderRadius: 16,
-    backgroundColor: colors.primary,
+  draftButton: {
+    flex: 1,
+    height: 48,
+    borderRadius: 14,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    elevation: 1,
+  },
+  draftButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#111827',
+  },
+  continueButton: {
+    flex: 2,
+    height: 48,
+    borderRadius: 14,
+    backgroundColor: '#000000',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
     elevation: 2,
   },
   continueButtonText: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
     color: '#FFFFFF',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+    justifyContent: 'flex-end',
+  },
+  modalSheet: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: Platform.OS === 'ios' ? 36 : 24,
+    maxHeight: '65%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+  },
+  modalTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  modalScroll: {
+    marginTop: 8,
+  },
+  modalOptionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F9FAFB',
+  },
+  modalOptionSelected: {
+    backgroundColor: '#F9FAFB',
+  },
+  modalOptionText: {
+    fontSize: 15,
+    color: '#374151',
+    fontWeight: '500',
+  },
+  modalOptionTextSelected: {
+    color: '#000000',
+    fontWeight: '700',
   },
   successContainer: {
     flex: 1,
@@ -824,7 +1622,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 50,
     borderRadius: 16,
-    backgroundColor: colors.primary,
+    backgroundColor: '#000000',
     alignItems: 'center',
     justifyContent: 'center',
   },
