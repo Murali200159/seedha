@@ -9,8 +9,8 @@ import {
   StyleSheet,
   SafeAreaView,
   Platform,
-  StatusBar,
 } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 import Svg, { Defs, LinearGradient, Stop, Rect } from 'react-native-svg';
 import {
   ChevronLeft,
@@ -183,7 +183,7 @@ export default function PostPropertyScreen() {
   if (mode === 'sheet') {
     return (
       <SafeAreaView style={styles.safeContainer}>
-        <StatusBar barStyle="dark-content" backgroundColor="#ECEEF5" />
+        <StatusBar style="dark" />
         <ScrollView
           style={styles.sheetScroll}
           contentContainerStyle={styles.sheetScrollContent}
@@ -271,7 +271,7 @@ export default function PostPropertyScreen() {
 
   return (
     <SafeAreaView style={styles.safeContainer}>
-      <StatusBar barStyle="dark-content" backgroundColor="#ECEEF5" />
+      <StatusBar style="dark" />
       <View style={styles.container}>
         {/* Step-by-step Header */}
         <View style={styles.formHeader}>

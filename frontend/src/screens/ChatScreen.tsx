@@ -31,7 +31,7 @@ export default function ChatScreen() {
   const property = currentScreen.params?.property as Property;
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [input, setInput] = useState('');
-  const scrollViewRef = useRef<ScrollView>(null);
+  const scrollViewRef = useRef<any>(null);
 
   const send = (text: string) => {
     if (!text.trim()) return;

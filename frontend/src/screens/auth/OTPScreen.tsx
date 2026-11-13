@@ -12,7 +12,7 @@ export default function OTPScreen() {
   const [loading, setLoading] = useState(false);
   const [countdown, setCountdown] = useState(30);
   const [canResend, setCanResend] = useState(false);
-  const inputRefs = useRef<TextInput[]>([]);
+  const inputRefs = useRef<any[]>([]);
 
   const maskedPhone = phone ? `+91 ****${phone.slice(-4)}` : '+91 ****5678';
   const otp = digits.join('');
@@ -68,7 +68,7 @@ export default function OTPScreen() {
           {digits.map((d: string, i: number) => (
             <TextInput
               key={i}
-              ref={(el: TextInput | null) => { if (el) inputRefs.current[i] = el; }}
+              ref={(el: any) => { if (el) inputRefs.current[i] = el; }}
               keyboardType="number-pad"
               maxLength={1}
               value={d}

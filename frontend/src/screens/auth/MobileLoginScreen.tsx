@@ -45,7 +45,7 @@ export default function MobileLoginScreen() {
   const [canResend, setCanResend] = useState(false);
   const [demoCodeHint, setDemoCodeHint] = useState<string | null>(null);
 
-  const otpInputRefs = useRef<TextInput[]>([]);
+  const otpInputRefs = useRef<any[]>([]);
 
   // Timer countdown for OTP resend
   useEffect(() => {
@@ -356,7 +356,7 @@ export default function MobileLoginScreen() {
               {otpDigits.map((digit, idx) => (
                 <TextInput
                   key={idx}
-                  ref={(el) => {
+                  ref={(el: any) => {
                     if (el) otpInputRefs.current[idx] = el;
                   }}
                   keyboardType="number-pad"
