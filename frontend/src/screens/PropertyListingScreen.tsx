@@ -20,16 +20,28 @@ const sortOptions: { value: SortBy; label: string }[] = [
 ];
 
 export default function PropertyListingScreen() {
-  const { currentScreen, push } = useApp();
-  const { type, title } = (currentScreen.params ?? {}) as { type: ListingType; title: string };
+  const { currentScreen, push, activeFilters } = useApp();
+  const { type, title, location } = (currentScreen.params ?? {}) as { type: ListingType; title: string; location?: string };
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [sortBy, setSortBy] = useState<SortBy>('relevance');
   const [showSort, setShowSort] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(location || '');
 
   const filtered = properties
     .filter(p => !type || p.listingType === type)
-    .filter(p => !searchQuery || p.title.toLowerCase().includes(searchQuery.toLowerCase()) || p.location.toLowerCase().includes(searchQuery.toLowerCase()))
+    .filter(p => !searchQuery || p.title.toLowerCase().includes(searchQuery.toLowerCase()) || p.location.toLowerCase().includes(searchQuery.toLowerCase()) || p.city.toLowerCase().includes(searchQuery.toLowerCase()))
+    .filter(p => {
+      if (activeFilters?.verifiedOnly && !p.verified) return false;
+      if (activeFilters?.bhk && activeFilters.bhk.length > 0) {
+        const matchesBhk = activeFilters.bhk.some(b => b.startsWith(`${p.bedrooms}`));
+        if (!matchesBhk) return false;
+      }
+      if (activeFilters?.furnishing && activeFilters.furnishing.length > 0) {
+        const matchesFurnishing = activeFilters.furnishing.some(f => f.toLowerCase().replace('-', ' ') === p.furnishing.toLowerCase().replace('-', ' '));
+        if (!matchesFurnishing) return false;
+      }
+      return true;
+    })
     .sort((a, b) => {
       if (sortBy === 'price_asc') return a.price - b.price;
       if (sortBy === 'price_desc') return b.price - a.price;

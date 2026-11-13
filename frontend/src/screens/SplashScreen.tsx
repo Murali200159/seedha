@@ -1,10 +1,10 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated, Easing, Platform } from 'react-native';
+import { View, Text, StyleSheet, Animated, Easing, Platform, TouchableOpacity } from 'react-native';
 import { useApp } from '../context/AppContext';
 import colors from '../theme/colors';
 
 export default function SplashScreen() {
-  const { push } = useApp();
+  const { setTab } = useApp();
   const isNative = Platform.OS !== 'web';
 
   const logoScale = useRef(new Animated.Value(0.7)).current;
@@ -67,16 +67,20 @@ export default function SplashScreen() {
       ])
     ).start();
 
-    // 3. Auto-transition to onboarding after 2.8 seconds
+    // 3. Auto-transition to Landing page after entrance animation completes
     const timer = setTimeout(() => {
-      push({ name: 'onboarding' });
-    }, 2800);
+      setTab('landing');
+    }, 2400);
 
     return () => clearTimeout(timer);
   }, []);
 
   return (
-    <View style={styles.container}>
+    <TouchableOpacity
+      activeOpacity={0.98}
+      onPress={() => setTab('landing')}
+      style={styles.container}
+    >
       {/* Outer Pulse Rings */}
       <Animated.View
         style={[
@@ -122,7 +126,7 @@ export default function SplashScreen() {
       <Animated.Text style={[styles.bottomTagline, { opacity: textOpacity }]}>
         PROPERTY, SIMPLIFIED.
       </Animated.Text>
-    </View>
+    </TouchableOpacity>
   );
 }
 

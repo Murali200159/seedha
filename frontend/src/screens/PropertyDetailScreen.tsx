@@ -22,6 +22,9 @@ import {
   Shield,
   BarChart3,
   UserCheck,
+  FileCheck,
+  ArrowRight,
+  Download,
 } from 'lucide-react-native';
 import { useApp } from '../context/AppContext';
 import type { Property } from '../types';
@@ -39,9 +42,10 @@ const amenityIcons: Record<string, React.ReactNode> = {
 const getAmenityIcon = (name: string) => amenityIcons[name] ?? <CheckCircle2 size={14} color={colors.primary} />;
 
 export default function PropertyDetailScreen() {
-  const { currentScreen, push, pop, toggleSaved, savedIds } = useApp();
+  const { currentScreen, push, pop, toggleSaved, savedIds, requireAuth } = useApp();
   const property = currentScreen.params?.property as Property;
   const [activeImg, setActiveImg] = useState(0);
+  const [showOwnerDetails, setShowOwnerDetails] = useState(false);
   const saved = savedIds ? savedIds.has(property.id) : false;
 
   const emiMonthly = Math.round(property.price * 0.00624);
@@ -211,42 +215,86 @@ export default function PropertyDetailScreen() {
                   <Text style={styles.verifiedOwnerText}>Verified {property.ownerType}</Text>
                 </View>
               </View>
-              <TouchableOpacity style={styles.phoneButton} activeOpacity={0.8}>
+              <TouchableOpacity
+                onPress={() => requireAuth(() => setShowOwnerDetails(!showOwnerDetails), undefined, 'Contact Owner')}
+                style={styles.phoneButton}
+                activeOpacity={0.8}
+              >
                 <Phone size={18} color={colors.textWhite} />
               </TouchableOpacity>
             </View>
 
-            {/* Diagram 1 Flow B: Show Owner Background Details & Decision Branch */}
-            {property.listingType === 'rent' && (
-              <View style={styles.ownerBgBox}>
-                <View style={styles.ownerBgHeader}>
-                  <ShieldCheck size={20} color={colors.primary} />
-                  <View style={styles.ownerBgTitleCol}>
-                    <Text style={styles.ownerBgTitle}>Verify Owner Background Details</Text>
-                    <Text style={styles.ownerBgSub}>
-                      Sub-Registrar title verification, EC 30-year check & society clearance
+            {/* Get Owner Details Button / Expanded Contact Info */}
+            {!showOwnerDetails ? (
+              <TouchableOpacity
+                onPress={() => requireAuth(() => setShowOwnerDetails(true), undefined, 'Get Owner Details')}
+                style={styles.getOwnerDetailsBtn}
+                activeOpacity={0.85}
+              >
+                <UserCheck size={16} color={colors.textWhite} />
+                <Text style={styles.getOwnerDetailsBtnText}>Get Owner Details</Text>
+              </TouchableOpacity>
+            ) : (
+              <View style={styles.revealedContactCard}>
+                <View style={styles.contactInfoRow}>
+                  <Text style={styles.contactLabel}>Phone:</Text>
+                  <Text style={styles.contactValue}>+91 98490 12345</Text>
+                </View>
+                <View style={styles.contactInfoRow}>
+                  <Text style={styles.contactLabel}>Email:</Text>
+                  <Text style={styles.contactValue}>owner.verified@seedhaproperties.com</Text>
+                </View>
+                <View style={styles.contactInfoRow}>
+                  <Text style={styles.contactLabel}>Verified ID:</Text>
+                  <Text style={styles.contactValue}>#SEEDHA-OWN-9281</Text>
+                </View>
+
+                {/* Flow 2: Decision for Rental Properties (Show Owner Background Details) */}
+                {property.listingType === 'rent' && (
+                  <View style={styles.backgroundCheckSection}>
+                    <View style={styles.bgCheckHeader}>
+                      <ShieldCheck size={18} color={colors.secondary} />
+                      <Text style={styles.bgCheckTitle}>Owner Background Details</Text>
+                    </View>
+                    <Text style={styles.bgCheckDescription}>
+                      Check title deed validity, police criminal record, and civil dispute status before booking visit or paying token.
                     </Text>
+
+                    <View style={styles.bgDecisionButtons}>
+                      <TouchableOpacity
+                        onPress={() =>
+                          push({
+                            name: 'ownerVerification',
+                            params: {
+                              ownerName: property.ownerName,
+                              flatTitle: property.title,
+                              location: property.location,
+                              property,
+                            },
+                          })
+                        }
+                        style={styles.getBgReportBtn}
+                        activeOpacity={0.85}
+                      >
+                        <FileCheck size={15} color={colors.textWhite} />
+                        <Text style={styles.getBgReportBtnText}>
+                          Get Owner Background Details (₹499)
+                        </Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        onPress={() => requireAuth(undefined, { name: 'bookVisit', params: { property } }, 'Schedule a Visit')}
+                        style={styles.skipBgReportBtn}
+                        activeOpacity={0.8}
+                      >
+                        <Text style={styles.skipBgReportBtnText}>
+                          Skip → Book Visiting
+                        </Text>
+                        <ArrowRight size={14} color={colors.textSecondary} />
+                      </TouchableOpacity>
+                    </View>
                   </View>
-                </View>
-
-                <View style={styles.ownerBgButtonsRow}>
-                  <TouchableOpacity
-                    onPress={() => push({ name: 'ownerVerification', params: { property } })}
-                    style={styles.ownerBgActionBtn}
-                    activeOpacity={0.85}
-                  >
-                    <UserCheck size={14} color={colors.textWhite} />
-                    <Text style={styles.ownerBgActionBtnText}>Get Report (₹499)</Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    onPress={() => push({ name: 'bookVisit', params: { property } })}
-                    style={styles.ownerBgSkipBtn}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={styles.ownerBgSkipBtnText}>Skip Report</Text>
-                  </TouchableOpacity>
-                </View>
+                )}
               </View>
             )}
           </View>
@@ -266,7 +314,7 @@ export default function PropertyDetailScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            onPress={() => push({ name: 'chat', params: { property } })}
+            onPress={() => requireAuth(() => push({ name: 'chat', params: { property } }), undefined, 'Chat with Owner')}
             style={styles.chatButton}
             activeOpacity={0.8}
           >
@@ -276,7 +324,7 @@ export default function PropertyDetailScreen() {
         </View>
 
         <TouchableOpacity
-          onPress={() => push({ name: 'bookVisit', params: { property } })}
+          onPress={() => requireAuth(undefined, { name: 'bookVisit', params: { property } }, 'Schedule a Visit')}
           style={styles.bookVisitButton}
           activeOpacity={0.9}
         >
@@ -637,6 +685,7 @@ const styles = StyleSheet.create({
     color: colors.textWhite,
     marginLeft: 8,
   },
+
   ownerBgBox: {
     marginTop: 14,
     backgroundColor: colors.primaryBg,
@@ -694,6 +743,101 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
   },
   ownerBgSkipBtnText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.textSecondary,
+  },
+  getOwnerDetailsBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.primary,
+    borderRadius: 12,
+    paddingVertical: 10,
+    marginTop: 12,
+    gap: 8,
+  },
+  getOwnerDetailsBtnText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.textWhite,
+  },
+  revealedContactCard: {
+    backgroundColor: colors.surfaceSoft,
+    borderRadius: 12,
+    padding: 12,
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+  },
+  contactInfoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 4,
+  },
+  contactLabel: {
+    fontSize: 12,
+    color: colors.textSecondary,
+  },
+  contactValue: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.primary,
+  },
+  backgroundCheckSection: {
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    padding: 12,
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: colors.secondary,
+  },
+  bgCheckHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 4,
+  },
+  bgCheckTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.primary,
+  },
+  bgCheckDescription: {
+    fontSize: 11,
+    color: colors.textSecondary,
+    lineHeight: 15,
+    marginBottom: 10,
+  },
+  bgDecisionButtons: {
+    gap: 8,
+  },
+  getBgReportBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.secondary,
+    borderRadius: 10,
+    paddingVertical: 10,
+    gap: 6,
+  },
+  getBgReportBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.textWhite,
+  },
+  skipBgReportBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    borderRadius: 10,
+    backgroundColor: colors.surfaceSoft,
+    borderWidth: 1,
+    borderColor: colors.border,
+    gap: 6,
+  },
+  skipBgReportBtnText: {
     fontSize: 12,
     fontWeight: '600',
     color: colors.textSecondary,

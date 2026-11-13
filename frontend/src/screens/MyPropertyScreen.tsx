@@ -18,7 +18,37 @@ const myListings = [
 ];
 
 export default function MyPropertyScreen() {
-  const { push } = useApp();
+  const { push, isAuthenticated, requireAuth } = useApp();
+
+  if (!isAuthenticated) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.pageTitle}>My Properties</Text>
+            <Text style={styles.pageSub}>Manage your listings</Text>
+          </View>
+        </View>
+
+        <View style={styles.guestEmptyWrapper}>
+          <View style={styles.guestEmptyCircle}>
+            <Building2 size={36} color="#2E3A2F" strokeWidth={2} />
+          </View>
+          <Text style={styles.guestEmptyTitle}>Sign in to view your properties</Text>
+          <Text style={styles.guestEmptySubtitle}>
+            Post free property listings, track buyer enquiries, and manage tenant agreements all in one place.
+          </Text>
+          <TouchableOpacity
+            style={styles.guestSignInBtn}
+            onPress={() => requireAuth(undefined, { name: 'myProperty' }, 'Manage Properties')}
+            activeOpacity={0.88}
+          >
+            <Text style={styles.guestSignInBtnText}>Sign In with Mobile OTP</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -29,7 +59,7 @@ export default function MyPropertyScreen() {
           <Text style={styles.pageSub}>Manage your listings</Text>
         </View>
         <TouchableOpacity
-          onPress={() => push({ name: 'postProperty' })}
+          onPress={() => requireAuth(undefined, { name: 'postProperty' }, 'Post Property')}
           style={styles.addButton}
           activeOpacity={0.8}
         >
@@ -277,5 +307,55 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: colors.textMuted,
     marginLeft: 3,
+  },
+  guestEmptyWrapper: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+  },
+  guestEmptyCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 9999,
+    backgroundColor: '#F8F6EE',
+    borderWidth: 1,
+    borderColor: '#D9C9B2',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  guestEmptyTitle: {
+    fontFamily: 'Plus Jakarta Sans',
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#2E3A2F',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  guestEmptySubtitle: {
+    fontFamily: 'Plus Jakarta Sans',
+    fontSize: 13,
+    color: '#687F5B',
+    textAlign: 'center',
+    lineHeight: 18,
+    marginBottom: 24,
+  },
+  guestSignInBtn: {
+    backgroundColor: '#2E3A2F',
+    paddingVertical: 14,
+    paddingHorizontal: 28,
+    borderRadius: 14,
+    shadowColor: '#2E3A2F',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    elevation: 4,
+  },
+  guestSignInBtnText: {
+    fontFamily: 'Plus Jakarta Sans',
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
 });

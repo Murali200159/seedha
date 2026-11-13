@@ -59,12 +59,21 @@ const menuSections = [
 ];
 
 export default function ProfileScreen() {
-  const { push, user, isAdmin, signOut, isAuthenticated } = useApp();
+  const { push, user, isAdmin, signOut, isAuthenticated, requireAuth } = useApp();
 
-  const displayName = user?.name || 'Guest User';
-  const displayPhone = user?.phone || '+91 98765 43210';
-  const displayEmail = user?.email || (isAuthenticated ? 'user@seedhaproperties.com' : 'Not signed in');
+  const displayName = user?.name || (isAuthenticated ? 'Verified User' : 'Guest User');
+  const displayPhone = user?.phone || (isAuthenticated ? '+91 98765 43210' : 'No phone linked');
+  const displayEmail = user?.email || (isAuthenticated ? 'user@seedhaproperties.com' : 'Guest Access Mode');
   const roleLabel = user?.role || (isAuthenticated ? 'USER' : 'GUEST');
+
+  const handleMenuPress = (label: string, screen: string | null) => {
+    if (!screen) return;
+    if (!isAuthenticated && (screen === 'myProperty' || screen === 'savedProperties' || screen === 'rentalAgreement')) {
+      requireAuth(undefined, { name: screen as any }, label);
+      return;
+    }
+    push({ name: screen as any });
+  };
 
   return (
     <View style={styles.container}>
@@ -122,6 +131,25 @@ export default function ProfileScreen() {
               </View>
             </View>
 
+            {/* Guest Banner if not authenticated */}
+            {!isAuthenticated ? (
+              <View style={styles.guestBannerBox}>
+                <View style={styles.guestBannerTextCol}>
+                  <Text style={styles.guestBannerHeading}>Guest Browsing Mode</Text>
+                  <Text style={styles.guestBannerSub}>
+                    Sign in with mobile OTP to post properties, view owner contacts, save favorites, and track applications.
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  style={styles.signInBtn}
+                  onPress={() => requireAuth(undefined, undefined, 'Access Full Profile')}
+                  activeOpacity={0.85}
+                >
+                  <Text style={styles.signInBtnText}>Sign In with Mobile OTP</Text>
+                </TouchableOpacity>
+              </View>
+            ) : null}
+
             {/* Quick Login / Role Switcher for Testing */}
             <View style={styles.roleSwitchCard}>
               <Text style={styles.roleSwitchTitle}>Role & Auth Status: <Text style={{ color: colors.primary, fontWeight: '700' }}>{roleLabel}</Text></Text>
@@ -138,11 +166,11 @@ export default function ProfileScreen() {
 
                 <TouchableOpacity
                   style={[styles.roleChip, !isAdmin && isAuthenticated && styles.roleChipActive]}
-                  onPress={() => push({ name: 'login' })}
+                  onPress={() => requireAuth(undefined, undefined, 'Sign In')}
                   activeOpacity={0.8}
                 >
                   <Text style={[styles.roleChipText, !isAdmin && isAuthenticated && styles.roleChipTextActive]}>
-                    {!isAdmin && isAuthenticated ? '✓ User Mode' : 'Login as User'}
+                    {!isAdmin && isAuthenticated ? '✓ User Mode' : 'Mobile OTP Login'}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -173,7 +201,7 @@ export default function ProfileScreen() {
                 {section.items.map(({ icon: Icon, label, badge, screen }) => (
                   <TouchableOpacity
                     key={label}
-                    onPress={() => screen && push({ name: screen as any })}
+                    onPress={() => handleMenuPress(label, screen)}
                     style={styles.menuRow}
                     activeOpacity={0.8}
                   >
@@ -194,6 +222,34 @@ export default function ProfileScreen() {
               </View>
             </View>
           ))}
+
+          {/* Operations & Administration */}
+          <View style={styles.sectionMargin}>
+            <Text style={styles.sectionHeader}>Operations & Administration</Text>
+            <View style={styles.menuCard}>
+              <TouchableOpacity
+                onPress={() => push({ name: 'adminPortal' })}
+                style={styles.adminRow}
+                activeOpacity={0.8}
+              >
+                <View style={styles.adminIconCircle}>
+                  <ShieldCheck size={18} color={colors.primary} />
+                </View>
+                <View style={styles.adminTextCol}>
+                  <Text style={styles.adminTitle}>Admin Operations Portal</Text>
+                  <Text style={styles.adminSubtitle}>
+                    {isAdmin ? 'Active Session · Tap to manage queues' : 'Authorized Seedha staff only · Passcode required'}
+                  </Text>
+                </View>
+                <View style={[styles.adminStatusBadge, isAdmin ? styles.adminStatusActive : styles.adminStatusSecure]}>
+                  <Text style={[styles.adminStatusText, isAdmin && { color: colors.secondary }]}>
+                    {isAdmin ? 'ACTIVE' : 'PORTAL'}
+                  </Text>
+                </View>
+                <ChevronRight size={15} color={colors.textMuted} />
+              </TouchableOpacity>
+            </View>
+          </View>
 
           <TouchableOpacity
             style={styles.logoutButton}
@@ -394,6 +450,53 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.textWhite,
   },
+  adminRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+  },
+  adminIconCircle: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    backgroundColor: colors.primaryBg,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  adminTextCol: {
+    flex: 1,
+    marginLeft: 12,
+    marginRight: 8,
+  },
+  adminTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.primary,
+  },
+  adminSubtitle: {
+    fontSize: 11,
+    color: colors.textSecondary,
+    marginTop: 2,
+  },
+  adminStatusBadge: {
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 6,
+    marginRight: 6,
+  },
+  adminStatusActive: {
+    backgroundColor: colors.secondaryBg,
+  },
+  adminStatusSecure: {
+    backgroundColor: colors.tertiaryBg,
+  },
+  adminStatusText: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: colors.primary,
+    letterSpacing: 0.5,
+  },
   logoutButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -455,6 +558,44 @@ const styles = StyleSheet.create({
     marginTop: 12,
     borderWidth: 1,
     borderColor: colors.border,
+  },
+  guestBannerBox: {
+    backgroundColor: '#F8F6EE',
+    borderWidth: 1,
+    borderColor: '#D9C9B2',
+    borderRadius: 12,
+    padding: 12,
+    marginTop: 12,
+  },
+  guestBannerTextCol: {
+    marginBottom: 10,
+  },
+  guestBannerHeading: {
+    fontFamily: 'Plus Jakarta Sans',
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#2E3A2F',
+    marginBottom: 3,
+  },
+  guestBannerSub: {
+    fontFamily: 'Plus Jakarta Sans',
+    fontSize: 11,
+    color: '#687F5B',
+    lineHeight: 16,
+  },
+  signInBtn: {
+    backgroundColor: '#2E3A2F',
+    paddingVertical: 9,
+    paddingHorizontal: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  signInBtnText: {
+    fontFamily: 'Plus Jakarta Sans',
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
   roleSwitchTitle: {
     fontSize: 12,

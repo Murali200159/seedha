@@ -1,186 +1,529 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TextInput, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
-import { ChevronLeft, CheckCircle2, Download, Share2 } from 'lucide-react-native';
+import {
+  View,
+  Text,
+  ScrollView,
+  TextInput,
+  TouchableOpacity,
+  ActivityIndicator,
+  StyleSheet,
+  Alert,
+} from 'react-native';
+import {
+  ChevronLeft,
+  CheckCircle2,
+  Download,
+  Share2,
+  FileSignature,
+  Building,
+  User,
+  ShieldCheck,
+  Check,
+  ArrowRight,
+  Clock,
+  Printer,
+} from 'lucide-react-native';
 import { useApp } from '../context/AppContext';
-import { colors } from '../theme/colors';
+import colors from '../theme/colors';
 
-type Step = 'landing' | 'details' | 'terms' | 'preview' | 'payment' | 'done';
-const steps: Step[] = ['details', 'terms', 'preview', 'payment', 'done'];
+type Step = 'role' | 'enterDetails' | 'preview' | 'pay' | 'order' | 'completed';
 
 export default function RentalAgreementScreen() {
-  const { pop } = useApp();
-  const [step, setStep] = useState<Step>('landing');
-  const [loading, setLoading] = useState(false);
-  const [form, setForm] = useState({
-    tenantName: '', tenantPhone: '', ownerName: '', ownerPhone: '',
-    propertyAddress: '', rentPerMonth: '', securityDeposit: '', agreementDuration: '11',
-    noticePeriod: '1',
-  });
+  const { pop, setTab, addAdminRequest } = useApp();
+  const [step, setStep] = useState<Step>('role');
+  const [userRole, setUserRole] = useState<'owner' | 'tenant'>('tenant');
 
-  const advance = () => {
-    const idx = steps.indexOf(step);
-    if (idx < steps.length - 1) {
-      if (step === 'payment') {
-        setLoading(true);
-        setTimeout(() => { setLoading(false); setStep('done'); }, 1200);
-      } else {
-        setStep(steps[idx + 1]);
-      }
-    }
+  // Form Details
+  const [ownerName, setOwnerName] = useState('Rajeshwar Rao');
+  const [ownerPhone, setOwnerPhone] = useState('+91 98490 12345');
+  const [tenantName, setTenantName] = useState('Rahul Sharma');
+  const [tenantPhone, setTenantPhone] = useState('+91 98765 43210');
+  const [propertyAddress, setPropertyAddress] = useState('Flat 402, Rainbow Vistas, HITEC City, Hyderabad');
+  const [rentAmount, setRentAmount] = useState('32000');
+  const [depositAmount, setDepositAmount] = useState('64000');
+  const [durationMonths, setDurationMonths] = useState('11');
+  const [paymentMethod, setPaymentMethod] = useState<'upi' | 'card' | 'netbanking'>('upi');
+
+  const [downloadSuccess, setDownloadSuccess] = useState(false);
+
+  const handleStartAgreement = () => {
+    setStep('enterDetails');
   };
 
-  if (step === 'done') {
-    return (
-      <View style={styles.successContainer}>
-        <View style={styles.successBadgeCircle}>
-          <CheckCircle2 size={40} color={colors.secondary} />
-        </View>
-        <Text style={styles.successTitle}>Agreement Ready!</Text>
-        <Text style={styles.successSub}>Your rental agreement has been created and sent to both parties.</Text>
-        <View style={styles.btnRow}>
-          <TouchableOpacity style={styles.actionBtnOutline} activeOpacity={0.8}>
-            <Download size={16} color={colors.primary} />
-            <Text style={styles.actionBtnOutlineText}>Download</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.actionBtnSolid} activeOpacity={0.8}>
-            <Share2 size={16} color={colors.textWhite} />
-            <Text style={styles.actionBtnSolidText}>Share</Text>
-          </TouchableOpacity>
-        </View>
-        <TouchableOpacity onPress={pop} style={{ marginTop: 16 }}>
-          <Text style={styles.backHomeText}>Back to Home</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
+  const handleProceedToPreview = () => {
+    if (!ownerName.trim() || !tenantName.trim() || !propertyAddress.trim()) {
+      alert('Please fill in Owner, Tenant, and Property Address details.');
+      return;
+    }
+    setStep('preview');
+  };
+
+  const handleProceedToPayment = () => {
+    setStep('pay');
+  };
+
+  const handlePay = () => {
+    if (addAdminRequest) {
+      addAdminRequest({
+        category: 'rental_agreement',
+        title: `Rental Agreement: ${tenantName} & ${ownerName}`,
+        userName: userRole === 'tenant' ? tenantName : ownerName,
+        userPhone: userRole === 'tenant' ? tenantPhone : ownerPhone,
+        userEmail: 'rahul@email.com',
+        location: propertyAddress,
+        amount: `₹${parseInt(rentAmount || '32000').toLocaleString('en-IN')}/mo`,
+        details: {
+          role: userRole,
+          tenantName,
+          tenantPhone,
+          ownerName,
+          ownerPhone,
+          propertyAddress,
+          rentAmount: `₹${rentAmount || '32000'}`,
+          depositAmount: `₹${depositAmount || '64000'}`,
+          durationMonths: `${durationMonths} Months`,
+          stampDutyPaid: '₹599 Paid',
+        },
+      });
+    }
+
+    setStep('order');
+    setTimeout(() => {
+      setStep('completed');
+    }, 2000);
+  };
+
+  const handleDownload = () => {
+    setDownloadSuccess(true);
+    setTimeout(() => {
+      setDownloadSuccess(false);
+      alert('Rental Agreement PDF downloaded successfully with valid e-Stamp seal!');
+    }, 1200);
+  };
 
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
-          onPress={step === 'landing' ? pop : () => { const i = steps.indexOf(step); setStep(i > 0 ? steps[i - 1] : 'landing'); }}
+          onPress={() => {
+            if (step === 'role') pop();
+            else if (step === 'enterDetails') setStep('role');
+            else if (step === 'preview') setStep('enterDetails');
+            else if (step === 'pay') setStep('preview');
+            else if (step === 'order') setStep('pay');
+            else if (step === 'completed') setTab('home');
+          }}
           style={styles.backCircle}
           activeOpacity={0.8}
         >
-          <ChevronLeft size={20} color={colors.textPrimary} strokeWidth={2.5} />
+          <ChevronLeft size={20} color={colors.primary} strokeWidth={2.5} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Rental Agreement</Text>
+        <View style={styles.headerTitleCol}>
+          <Text style={styles.headerTitle}>Rental Agreements</Text>
+          <Text style={styles.headerSub}>
+            {step === 'role'
+              ? 'Select Owner / Tenant'
+              : step === 'enterDetails'
+              ? 'Enter Agreement Details'
+              : step === 'preview'
+              ? 'Preview Legal Agreement'
+              : step === 'pay'
+              ? 'Pay Stamp & Drafting Fee'
+              : step === 'order'
+              ? 'Placing Order...'
+              : 'Agreement Received'}
+          </Text>
+        </View>
       </View>
 
       <ScrollView style={styles.scrollArea} showsVerticalScrollIndicator={false}>
-        {step === 'landing' && (
-          <View style={styles.sectionPadding}>
-            <View style={styles.landingBanner}>
-              <Text style={styles.landingTitle}>Digital Rent Agreement</Text>
-              <Text style={styles.landingSub}>₹499 · Legally Valid · Instant</Text>
+        {/* Step 1: Owner / Tenant Role Selection & Click Rental Agreements */}
+        {step === 'role' && (
+          <View style={styles.contentPadding}>
+            <View style={styles.heroCard}>
+              <View style={styles.heroBadge}>
+                <FileSignature size={16} color={colors.secondary} />
+                <Text style={styles.heroBadgeText}>GOVERNMENT APPROVED E-STAMP</Text>
+              </View>
+              <Text style={styles.heroTitle}>Create Legally Binding Rental Agreement</Text>
+              <Text style={styles.heroSub}>
+                100% legal, non-judicial e-stamp paper delivered digitally with Aadhaar e-Sign support.
+              </Text>
             </View>
 
-            <View style={styles.featureGrid}>
-              {[
-                { v: '₹499', l: 'Flat Fee' },
-                { v: '10min', l: 'To Create' },
-                { v: '100%', l: 'Legal' },
-              ].map(({ v, l }) => (
-                <View key={l} style={styles.featureCard}>
-                  <Text style={styles.featureVal}>{v}</Text>
-                  <Text style={styles.featureSub}>{l}</Text>
+            <Text style={styles.sectionHeading}>Are you an Owner or Tenant?</Text>
+
+            <View style={styles.rolesRow}>
+              <TouchableOpacity
+                onPress={() => setUserRole('tenant')}
+                style={[styles.roleOption, userRole === 'tenant' && styles.roleOptionActive]}
+                activeOpacity={0.85}
+              >
+                <View style={[styles.roleIconBox, { backgroundColor: colors.primaryBg }]}>
+                  <User size={22} color={colors.primary} />
                 </View>
-              ))}
+                <Text style={styles.roleTitle}>I am the Tenant</Text>
+                <Text style={styles.roleSub}>Draft agreement to submit to landlord & claim HRA</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => setUserRole('owner')}
+                style={[styles.roleOption, userRole === 'owner' && styles.roleOptionActive]}
+                activeOpacity={0.85}
+              >
+                <View style={[styles.roleIconBox, { backgroundColor: colors.secondaryBg }]}>
+                  <Building size={22} color={colors.secondary} />
+                </View>
+                <Text style={styles.roleTitle}>I am the Landlord</Text>
+                <Text style={styles.roleSub}>Draft agreement for new or renewing tenant</Text>
+              </TouchableOpacity>
             </View>
+
+            <View style={styles.perksBox}>
+              <View style={styles.perkItem}>
+                <CheckCircle2 size={16} color={colors.secondary} />
+                <Text style={styles.perkText}>Official ₹100 e-Stamp certificate included</Text>
+              </View>
+              <View style={styles.perkItem}>
+                <CheckCircle2 size={16} color={colors.secondary} />
+                <Text style={styles.perkText}>Legally vetted clauses protecting deposit & tenure</Text>
+              </View>
+              <View style={styles.perkItem}>
+                <CheckCircle2 size={16} color={colors.secondary} />
+                <Text style={styles.perkText}>Both parties e-sign from mobile via Aadhaar OTP</Text>
+              </View>
+            </View>
+
+            <TouchableOpacity
+              onPress={handleStartAgreement}
+              style={styles.primaryButton}
+              activeOpacity={0.9}
+            >
+              <Text style={styles.primaryButtonText}>Click Rental Agreements → Start Details</Text>
+              <ArrowRight size={18} color={colors.textWhite} />
+            </TouchableOpacity>
           </View>
         )}
 
-        {step === 'details' && (
-          <View style={styles.sectionPadding}>
-            <Text style={styles.stepTitle}>Party Details</Text>
-            <View style={styles.fieldGroup}>
-              <Text style={styles.inputLabel}>Tenant Full Name</Text>
+        {/* Step 2: Enter Details */}
+        {step === 'enterDetails' && (
+          <View style={styles.contentPadding}>
+            <View style={styles.stepBadge}>
+              <Text style={styles.stepBadgeText}>Step 2 of 5: Enter Parties & Property Details</Text>
+            </View>
+
+            <Text style={styles.subHeading}>Landlord / Owner Details</Text>
+            <View style={styles.formGroup}>
+              <Text style={styles.inputLabel}>Owner Full Name *</Text>
               <TextInput
                 style={styles.textInput}
-                placeholder="Arjun Reddy"
-                placeholderTextColor={colors.textMuted}
-                value={form.tenantName}
-                onChangeText={text => setForm(f => ({ ...f, tenantName: text }))}
+                value={ownerName}
+                onChangeText={setOwnerName}
+                placeholder="e.g. Rajeshwar Rao"
               />
             </View>
-            <View style={styles.fieldGroup}>
-              <Text style={styles.inputLabel}>Owner Full Name</Text>
+            <View style={styles.formGroup}>
+              <Text style={styles.inputLabel}>Owner Phone *</Text>
               <TextInput
                 style={styles.textInput}
-                placeholder="Venkata Rao"
-                placeholderTextColor={colors.textMuted}
-                value={form.ownerName}
-                onChangeText={text => setForm(f => ({ ...f, ownerName: text }))}
+                value={ownerPhone}
+                onChangeText={setOwnerPhone}
+                placeholder="+91 98490 12345"
               />
             </View>
-            <View style={styles.fieldGroup}>
-              <Text style={styles.inputLabel}>Property Address</Text>
+
+            <Text style={styles.subHeading}>Tenant Details</Text>
+            <View style={styles.formGroup}>
+              <Text style={styles.inputLabel}>Tenant Full Name *</Text>
               <TextInput
                 style={styles.textInput}
-                placeholder="Kondapur, Hyderabad"
-                placeholderTextColor={colors.textMuted}
-                value={form.propertyAddress}
-                onChangeText={text => setForm(f => ({ ...f, propertyAddress: text }))}
+                value={tenantName}
+                onChangeText={setTenantName}
+                placeholder="e.g. Rahul Sharma"
               />
             </View>
+            <View style={styles.formGroup}>
+              <Text style={styles.inputLabel}>Tenant Phone *</Text>
+              <TextInput
+                style={styles.textInput}
+                value={tenantPhone}
+                onChangeText={setTenantPhone}
+                placeholder="+91 98765 43210"
+              />
+            </View>
+
+            <Text style={styles.subHeading}>Property & Financial Terms</Text>
+            <View style={styles.formGroup}>
+              <Text style={styles.inputLabel}>Rented Property Address *</Text>
+              <TextInput
+                style={styles.textInput}
+                value={propertyAddress}
+                onChangeText={setPropertyAddress}
+                placeholder="Flat / Unit No., Building, Area, City"
+              />
+            </View>
+
+            <View style={styles.rowTwo}>
+              <View style={[styles.formGroup, { flex: 1 }]}>
+                <Text style={styles.inputLabel}>Monthly Rent (₹)</Text>
+                <TextInput
+                  style={styles.textInput}
+                  keyboardType="numeric"
+                  value={rentAmount}
+                  onChangeText={setRentAmount}
+                />
+              </View>
+              <View style={[styles.formGroup, { flex: 1 }]}>
+                <Text style={styles.inputLabel}>Security Deposit (₹)</Text>
+                <TextInput
+                  style={styles.textInput}
+                  keyboardType="numeric"
+                  value={depositAmount}
+                  onChangeText={setDepositAmount}
+                />
+              </View>
+            </View>
+
+            <View style={styles.formGroup}>
+              <Text style={styles.inputLabel}>Agreement Duration</Text>
+              <View style={styles.chipRow}>
+                {['11', '22', '33'].map(m => (
+                  <TouchableOpacity
+                    key={m}
+                    onPress={() => setDurationMonths(m)}
+                    style={[styles.tenureChip, durationMonths === m && styles.tenureChipActive]}
+                  >
+                    <Text style={[styles.tenureChipText, durationMonths === m && styles.tenureChipTextActive]}>
+                      {m} Months
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
+            <TouchableOpacity
+              onPress={handleProceedToPreview}
+              style={styles.primaryButton}
+              activeOpacity={0.9}
+            >
+              <Text style={styles.primaryButtonText}>Submit and Preview Agreement</Text>
+              <ArrowRight size={18} color={colors.textWhite} />
+            </TouchableOpacity>
           </View>
         )}
 
-        {step === 'terms' && (
-          <View style={styles.sectionPadding}>
-            <Text style={styles.stepTitle}>Rental Terms</Text>
-            <View style={styles.fieldGroup}>
-              <Text style={styles.inputLabel}>Monthly Rent (₹)</Text>
-              <TextInput
-                style={styles.textInput}
-                placeholder="15,000"
-                placeholderTextColor={colors.textMuted}
-                keyboardType="numeric"
-                value={form.rentPerMonth}
-                onChangeText={text => setForm(f => ({ ...f, rentPerMonth: text }))}
-              />
+        {/* Step 3: Submit and Preview Agreement */}
+        {step === 'preview' && (
+          <View style={styles.contentPadding}>
+            <View style={styles.stepBadge}>
+              <Text style={styles.stepBadgeText}>Step 3 of 5: Preview Legal Agreement</Text>
             </View>
-            <View style={styles.fieldGroup}>
-              <Text style={styles.inputLabel}>Security Deposit (₹)</Text>
-              <TextInput
-                style={styles.textInput}
-                placeholder="45,000"
-                placeholderTextColor={colors.textMuted}
-                keyboardType="numeric"
-                value={form.securityDeposit}
-                onChangeText={text => setForm(f => ({ ...f, securityDeposit: text }))}
-              />
+
+            {/* Simulated Government e-Stamp Paper */}
+            <View style={styles.stampPaper}>
+              <View style={styles.stampHeader}>
+                <Text style={styles.stampGovText}>GOVERNMENT OF INDIA · NON-JUDICIAL</Text>
+                <Text style={styles.stampCertNo}>Certificate No: IN-DL84920492819241K</Text>
+                <Text style={styles.stampValue}>E-STAMP VALUE: ₹100.00</Text>
+              </View>
+
+              <Text style={styles.legalTitle}>RESIDENTIAL LEASE AGREEMENT</Text>
+              <Text style={styles.legalDate}>
+                Made on this {new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
+              </Text>
+
+              <View style={styles.clauseBox}>
+                <Text style={styles.clauseTitle}>BETWEEN:</Text>
+                <Text style={styles.clauseBody}>
+                  <Text style={{ fontWeight: '700' }}>LESSOR (Landlord):</Text> {ownerName}, Phone: {ownerPhone}
+                </Text>
+                <Text style={[styles.clauseBody, { marginTop: 6 }]}>
+                  <Text style={{ fontWeight: '700' }}>LESSEE (Tenant):</Text> {tenantName}, Phone: {tenantPhone}
+                </Text>
+              </View>
+
+              <View style={styles.clauseBox}>
+                <Text style={styles.clauseTitle}>DEMISED PREMISES:</Text>
+                <Text style={styles.clauseBody}>{propertyAddress}</Text>
+              </View>
+
+              <View style={styles.clauseBox}>
+                <Text style={styles.clauseTitle}>TERMS & CONDITIONS:</Text>
+                <Text style={styles.clauseItem}>
+                  1. <Text style={{ fontWeight: '600' }}>Rent:</Text> The Tenant shall pay a monthly rent of ₹{parseInt(rentAmount).toLocaleString('en-IN')} on or before the 5th of each month.
+                </Text>
+                <Text style={styles.clauseItem}>
+                  2. <Text style={{ fontWeight: '600' }}>Security Deposit:</Text> An interest-free refundable deposit of ₹{parseInt(depositAmount).toLocaleString('en-IN')} has been remitted to Landlord.
+                </Text>
+                <Text style={styles.clauseItem}>
+                  3. <Text style={{ fontWeight: '600' }}>Duration & Notice:</Text> This agreement is valid for {durationMonths} months, subject to 1 month written notice by either party.
+                </Text>
+              </View>
+
+              <View style={styles.signatureRow}>
+                <View style={styles.sigBox}>
+                  <Text style={styles.sigRole}>Lessor Signature</Text>
+                  <Text style={styles.sigStatus}>[Aadhaar e-Sign Pending]</Text>
+                </View>
+                <View style={styles.sigBox}>
+                  <Text style={styles.sigRole}>Lessee Signature</Text>
+                  <Text style={styles.sigStatus}>[Aadhaar e-Sign Pending]</Text>
+                </View>
+              </View>
             </View>
+
+            <TouchableOpacity
+              onPress={handleProceedToPayment}
+              style={styles.primaryButton}
+              activeOpacity={0.9}
+            >
+              <Text style={styles.primaryButtonText}>Pay Money (₹499) & Order Agreement</Text>
+              <ArrowRight size={18} color={colors.textWhite} />
+            </TouchableOpacity>
           </View>
         )}
 
-        {step === 'payment' && (
-          <View style={styles.sectionPadding}>
-            <Text style={styles.stepTitle}>Payment</Text>
-            <View style={styles.paymentBox}>
-              <Text style={styles.paymentTitle}>Digital Agreement Fee</Text>
-              <Text style={styles.paymentPrice}>₹589 (incl. GST)</Text>
+        {/* Step 4: Pay Money */}
+        {step === 'pay' && (
+          <View style={styles.contentPadding}>
+            <View style={styles.stepBadge}>
+              <Text style={styles.stepBadgeText}>Step 4 of 5: Payment (Stamp Paper & Legal Drafting)</Text>
             </View>
+
+            <View style={styles.invoiceCard}>
+              <Text style={styles.invoiceTitle}>Payment Breakdown</Text>
+              <View style={styles.invoiceRow}>
+                <Text style={styles.invoiceLabel}>Official Government e-Stamp Duty (₹100)</Text>
+                <Text style={styles.invoiceVal}>₹100.00</Text>
+              </View>
+              <View style={styles.invoiceRow}>
+                <Text style={styles.invoiceLabel}>Legal Drafting & Lawyer Vetting</Text>
+                <Text style={styles.invoiceVal}>₹300.00</Text>
+              </View>
+              <View style={styles.invoiceRow}>
+                <Text style={styles.invoiceLabel}>Digital Aadhaar e-Sign & Delivery</Text>
+                <Text style={styles.invoiceVal}>₹99.00</Text>
+              </View>
+              <View style={[styles.invoiceRow, styles.invoiceTotalRow]}>
+                <Text style={styles.invoiceTotalLabel}>Total Amount Due</Text>
+                <Text style={styles.invoiceTotalVal}>₹499.00</Text>
+              </View>
+            </View>
+
+            <Text style={styles.subHeading}>Choose Payment Option</Text>
+
+            <TouchableOpacity
+              onPress={() => setPaymentMethod('upi')}
+              style={[styles.payCard, paymentMethod === 'upi' && styles.payCardActive]}
+              activeOpacity={0.8}
+            >
+              <View style={styles.payRadio}>
+                {paymentMethod === 'upi' && <View style={styles.payRadioDot} />}
+              </View>
+              <Text style={styles.payTitle}>UPI (Google Pay, PhonePe, Paytm)</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => setPaymentMethod('card')}
+              style={[styles.payCard, paymentMethod === 'card' && styles.payCardActive]}
+              activeOpacity={0.8}
+            >
+              <View style={styles.payRadio}>
+                {paymentMethod === 'card' && <View style={styles.payRadioDot} />}
+              </View>
+              <Text style={styles.payTitle}>Credit / Debit Card</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => setPaymentMethod('netbanking')}
+              style={[styles.payCard, paymentMethod === 'netbanking' && styles.payCardActive]}
+              activeOpacity={0.8}
+            >
+              <View style={styles.payRadio}>
+                {paymentMethod === 'netbanking' && <View style={styles.payRadioDot} />}
+              </View>
+              <Text style={styles.payTitle}>Net Banking</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={handlePay}
+              style={styles.primaryButton}
+              activeOpacity={0.9}
+            >
+              <Text style={styles.primaryButtonText}>Pay ₹499 & Order Agreement</Text>
+              <ArrowRight size={18} color={colors.textWhite} />
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Step 5: Order Agreements Processing */}
+        {step === 'order' && (
+          <View style={styles.orderWrap}>
+            <ActivityIndicator size="large" color={colors.primary} />
+            <Text style={styles.orderTitle}>Order Agreements in Progress...</Text>
+            <Text style={styles.orderSub}>
+              Affixing government non-judicial stamp, generating QR verification stamp, and preparing digital e-sign links.
+            </Text>
+          </View>
+        )}
+
+        {/* Step 6: Agreement Received / Completed */}
+        {step === 'completed' && (
+          <View style={styles.contentPadding}>
+            <View style={styles.successIconCircle}>
+              <CheckCircle2 size={44} color={colors.secondary} />
+            </View>
+            <Text style={styles.successTitle}>Agreement Received & Completed!</Text>
+            <Text style={styles.successSub}>
+              Order <Text style={{ fontWeight: '700', color: colors.primary }}>#RA-2026-90412</Text> is active. The legally sealed agreement is ready to download and sign.
+            </Text>
+
+            <View style={styles.statusBox}>
+              <View style={styles.statusRow}>
+                <CheckCircle2 size={16} color={colors.secondary} />
+                <Text style={styles.statusText}>e-Stamp Paper Generated & Sealed</Text>
+              </View>
+              <View style={styles.statusRow}>
+                <CheckCircle2 size={16} color={colors.secondary} />
+                <Text style={styles.statusText}>Digital e-Sign link dispatched to {ownerPhone} and {tenantPhone}</Text>
+              </View>
+              <View style={styles.statusRow}>
+                <CheckCircle2 size={16} color={colors.secondary} />
+                <Text style={styles.statusText}>Valid across India for HRA & address proof</Text>
+              </View>
+            </View>
+
+            <TouchableOpacity
+              onPress={handleDownload}
+              style={styles.downloadBtn}
+              activeOpacity={0.85}
+            >
+              <Download size={18} color={colors.textWhite} />
+              <Text style={styles.downloadBtnText}>
+                {downloadSuccess ? 'Downloaded!' : 'Download Agreement (PDF)'}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => alert('Agreement shared via WhatsApp & Email!')}
+              style={styles.shareBtn}
+              activeOpacity={0.8}
+            >
+              <Share2 size={16} color={colors.primary} />
+              <Text style={styles.shareBtnText}>Share Agreement Link</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => setTab('home')}
+              style={styles.homeReturnBtn}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.homeReturnBtnText}>Back to Home</Text>
+            </TouchableOpacity>
           </View>
         )}
       </ScrollView>
-
-      {/* Footer */}
-      <View style={styles.footer}>
-        <TouchableOpacity
-          onPress={() => step === 'landing' ? setStep('details') : advance()}
-          disabled={loading}
-          style={styles.mainButton}
-          activeOpacity={0.9}
-        >
-          {loading ? (
-            <ActivityIndicator color={colors.textWhite} />
-          ) : (
-            <Text style={styles.mainButtonText}>{step === 'landing' ? 'Create Agreement' : step === 'payment' ? 'Pay ₹589' : 'Continue'}</Text>
-          )}
-        </TouchableOpacity>
-      </View>
     </View>
   );
 }
@@ -194,206 +537,490 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 10,
+    paddingTop: 14,
+    paddingBottom: 12,
     backgroundColor: colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: colors.borderLight,
   },
   backCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     backgroundColor: colors.tertiaryBg,
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 1,
+  },
+  headerTitleCol: {
+    marginLeft: 12,
   },
   headerTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: colors.textPrimary,
-    marginLeft: 10,
+    color: colors.primary,
+  },
+  headerSub: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    marginTop: 1,
   },
   scrollArea: {
     flex: 1,
   },
-  sectionPadding: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+  contentPadding: {
+    padding: 16,
   },
-  landingBanner: {
-    backgroundColor: colors.primary,
-    borderRadius: 18,
-    padding: 20,
-    alignItems: 'center',
+  heroCard: {
+    backgroundColor: colors.surface,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
     marginBottom: 16,
   },
-  landingTitle: {
+  heroBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.secondaryBg,
+    alignSelf: 'flex-start',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    marginBottom: 8,
+    gap: 6,
+  },
+  heroBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.secondary,
+  },
+  heroTitle: {
     fontSize: 18,
     fontWeight: '800',
-    color: colors.textWhite,
+    color: colors.primary,
+    marginBottom: 6,
   },
-  landingSub: {
-    fontSize: 12,
-    color: colors.tertiary,
-    marginTop: 4,
+  heroSub: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    lineHeight: 18,
   },
-  featureGrid: {
+  sectionHeading: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.primary,
+    marginBottom: 12,
+  },
+  subHeading: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.primary,
+    marginTop: 6,
+    marginBottom: 10,
+  },
+  rolesRow: {
     flexDirection: 'row',
-    gap: 8,
+    gap: 12,
+    marginBottom: 16,
   },
-  featureCard: {
+  roleOption: {
     flex: 1,
     backgroundColor: colors.surface,
     borderRadius: 14,
-    padding: 12,
+    padding: 14,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+  },
+  roleOptionActive: {
+    borderColor: colors.primary,
+    backgroundColor: colors.surface,
+  },
+  roleIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.tertiary,
-    elevation: 1,
+    justifyContent: 'center',
+    marginBottom: 10,
   },
-  featureVal: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: colors.primary,
-  },
-  featureSub: {
-    fontSize: 10,
-    color: colors.textSecondary,
-    marginTop: 2,
-  },
-  stepTitle: {
-    fontSize: 16,
+  roleTitle: {
+    fontSize: 14,
     fontWeight: '700',
-    color: colors.textPrimary,
-    marginBottom: 12,
+    color: colors.primary,
+    marginBottom: 4,
   },
-  fieldGroup: {
-    marginBottom: 12,
+  roleSub: {
+    fontSize: 11,
+    color: colors.textSecondary,
+    lineHeight: 15,
+  },
+  perksBox: {
+    backgroundColor: colors.surface,
+    borderRadius: 14,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+    marginBottom: 20,
+    gap: 10,
+  },
+  perkItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  perkText: {
+    fontSize: 12,
+    color: colors.textPrimary,
+  },
+  stepBadge: {
+    backgroundColor: colors.secondaryBg,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
+    marginBottom: 14,
+  },
+  stepBadgeText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.secondary,
+  },
+  formGroup: {
+    marginBottom: 14,
+  },
+  rowTwo: {
+    flexDirection: 'row',
+    gap: 10,
   },
   inputLabel: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '600',
-    color: colors.textSecondary,
+    color: colors.primary,
     marginBottom: 6,
   },
   textInput: {
     backgroundColor: colors.surface,
     borderRadius: 12,
-    paddingHorizontal: 14,
-    height: 44,
-    fontSize: 14,
-    color: colors.textPrimary,
     borderWidth: 1,
     borderColor: colors.border,
-    elevation: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 14,
+    color: colors.primary,
   },
-  paymentBox: {
+  chipRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  tenureChip: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: 'center',
+  },
+  tenureChipActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  tenureChipText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.textSecondary,
+  },
+  tenureChipTextActive: {
+    color: colors.textWhite,
+    fontWeight: '700',
+  },
+  stampPaper: {
+    backgroundColor: '#FAF7EE',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1.5,
+    borderColor: '#C7B299',
+    marginBottom: 20,
+  },
+  stampHeader: {
+    borderBottomWidth: 1.5,
+    borderBottomColor: '#C7B299',
+    paddingBottom: 10,
+    marginBottom: 12,
+    alignItems: 'center',
+  },
+  stampGovText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#8A6D3B',
+    letterSpacing: 1,
+  },
+  stampCertNo: {
+    fontSize: 10,
+    color: '#555',
+    marginTop: 2,
+  },
+  stampValue: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#8A6D3B',
+    marginTop: 4,
+  },
+  legalTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    textAlign: 'center',
+    color: colors.primary,
+    letterSpacing: 0.5,
+  },
+  legalDate: {
+    fontSize: 11,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    marginTop: 2,
+    marginBottom: 12,
+  },
+  clauseBox: {
+    backgroundColor: 'rgba(255,255,255,0.7)',
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 10,
+  },
+  clauseTitle: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.primary,
+    marginBottom: 4,
+  },
+  clauseBody: {
+    fontSize: 11,
+    color: colors.textPrimary,
+    lineHeight: 16,
+  },
+  clauseItem: {
+    fontSize: 11,
+    color: colors.textPrimary,
+    lineHeight: 16,
+    marginBottom: 4,
+  },
+  signatureRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#C7B299',
+    paddingTop: 10,
+  },
+  sigBox: {
+    alignItems: 'center',
+  },
+  sigRole: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: colors.primary,
+  },
+  sigStatus: {
+    fontSize: 9,
+    color: colors.accent,
+    marginTop: 2,
+  },
+  invoiceCard: {
     backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 16,
-    alignItems: 'center',
     borderWidth: 1,
     borderColor: colors.border,
-    elevation: 1,
+    marginBottom: 16,
   },
-  paymentTitle: {
-    fontSize: 14,
-    color: colors.textSecondary,
-  },
-  paymentPrice: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: colors.primary,
-    marginTop: 6,
-  },
-  footer: {
-    padding: 16,
-    backgroundColor: colors.surface,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
-  mainButton: {
-    height: 48,
-    borderRadius: 14,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  mainButtonText: {
+  invoiceTitle: {
     fontSize: 15,
     fontWeight: '700',
-    color: colors.textWhite,
+    color: colors.primary,
+    marginBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderLight,
+    paddingBottom: 8,
   },
-  successContainer: {
-    flex: 1,
+  invoiceRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 4,
+  },
+  invoiceLabel: {
+    fontSize: 13,
+    color: colors.textSecondary,
+  },
+  invoiceVal: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.primary,
+  },
+  invoiceTotalRow: {
+    borderTopWidth: 1,
+    borderTopColor: colors.borderLight,
+    marginTop: 8,
+    paddingTop: 8,
+  },
+  invoiceTotalLabel: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.primary,
+  },
+  invoiceTotalVal: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: colors.primary,
+  },
+  payCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    padding: 14,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    marginBottom: 10,
+  },
+  payCardActive: {
+    borderColor: colors.primary,
+  },
+  payRadio: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 2,
+    borderColor: colors.border,
     alignItems: 'center',
     justifyContent: 'center',
+    marginRight: 10,
+  },
+  payRadioDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.primary,
+  },
+  payTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.primary,
+  },
+  orderWrap: {
+    paddingTop: 90,
+    alignItems: 'center',
     paddingHorizontal: 24,
-    backgroundColor: colors.background,
   },
-  successBadgeCircle: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    backgroundColor: colors.tertiaryBg,
+  orderTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.primary,
+    marginTop: 18,
+  },
+  orderSub: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    marginTop: 6,
+    lineHeight: 18,
+  },
+  successIconCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: colors.secondaryBg,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 16,
+    alignSelf: 'center',
+    marginTop: 10,
+    marginBottom: 12,
   },
   successTitle: {
     fontSize: 22,
     fontWeight: '800',
-    color: colors.textPrimary,
-    marginBottom: 8,
+    color: colors.primary,
+    textAlign: 'center',
   },
   successSub: {
     fontSize: 13,
     color: colors.textSecondary,
     textAlign: 'center',
+    marginBottom: 20,
     lineHeight: 18,
   },
-  btnRow: {
-    flexDirection: 'row',
+  statusBox: {
+    backgroundColor: colors.surface,
+    borderRadius: 14,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginBottom: 20,
     gap: 10,
-    marginTop: 20,
-    width: '100%',
   },
-  actionBtnOutline: {
+  statusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  statusText: {
+    fontSize: 12,
+    color: colors.textPrimary,
     flex: 1,
-    height: 44,
-    borderRadius: 12,
+  },
+  downloadBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.primary,
+    paddingVertical: 14,
+    borderRadius: 14,
+    gap: 8,
+    marginBottom: 10,
+  },
+  downloadBtnText: {
+    color: colors.textWhite,
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  shareBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.surface,
     borderWidth: 1.5,
     borderColor: colors.primary,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    paddingVertical: 12,
+    borderRadius: 14,
+    gap: 8,
+    marginBottom: 10,
   },
-  actionBtnOutlineText: {
-    fontSize: 13,
-    fontWeight: '700',
+  shareBtnText: {
     color: colors.primary,
-    marginLeft: 6,
-  },
-  actionBtnSolid: {
-    flex: 1,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: colors.primary,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  actionBtnSolidText: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '700',
-    color: colors.textWhite,
-    marginLeft: 6,
   },
-  backHomeText: {
+  homeReturnBtn: {
+    alignItems: 'center',
+    paddingVertical: 12,
+    marginBottom: 20,
+  },
+  homeReturnBtnText: {
     fontSize: 13,
     fontWeight: '600',
     color: colors.textSecondary,
+  },
+  primaryButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 14,
+    paddingVertical: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginBottom: 20,
+  },
+  primaryButtonText: {
+    color: colors.textWhite,
+    fontSize: 15,
+    fontWeight: '700',
   },
 });

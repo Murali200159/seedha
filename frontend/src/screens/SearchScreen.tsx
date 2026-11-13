@@ -6,6 +6,8 @@ import { colors } from '../theme/colors';
 import { properties } from '../data/properties';
 import PropertyCard from '../components/PropertyCard';
 
+import type { ListingType } from '../types';
+
 const popularLocations = [
   { name: 'Madhapur, Hyderabad', count: '234 properties' },
   { name: 'Gachibowli, Hyderabad', count: '187 properties' },
@@ -23,7 +25,8 @@ const recentSearches = [
 ];
 
 export default function SearchScreen() {
-  const { pop, push } = useApp();
+  const { pop, push, currentScreen } = useApp();
+  const searchType = ((currentScreen.params?.type as ListingType) || 'buy');
   const [query, setQuery] = useState('');
 
   const results = query.length > 1
@@ -75,7 +78,7 @@ export default function SearchScreen() {
               {suggestions.map((s, i) => (
                 <TouchableOpacity
                   key={i}
-                  onPress={() => push({ name: 'propertyListing', params: { type: 'buy', title: s } })}
+                  onPress={() => push({ name: 'propertyListing', params: { type: searchType, title: s, location: query } })}
                   style={styles.suggestionRow}
                 >
                   <MapPin size={15} color={colors.textMuted} />
@@ -128,7 +131,7 @@ export default function SearchScreen() {
               {popularLocations.map(loc => (
                 <TouchableOpacity
                   key={loc.name}
-                  onPress={() => push({ name: 'propertyListing', params: { type: 'buy', title: `Properties in ${loc.name}` } })}
+                  onPress={() => push({ name: 'propertyListing', params: { type: searchType, title: `Properties in ${loc.name}`, location: loc.name.split(',')[0] } })}
                   style={styles.locationRow}
                   activeOpacity={0.8}
                 >

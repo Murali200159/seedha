@@ -54,6 +54,7 @@ export type ScreenName =
   | 'splash'
   | 'onboarding'
   | 'login'
+  | 'mobileLogin'
   | 'otp'
   | 'signup'
   | 'profileSetup'
@@ -74,6 +75,10 @@ export type ScreenName =
   | 'homeLoan'
   | 'rentalAgreement'
   | 'propertyManagement'
+  | 'ownerVerification'
+  | 'adminLogin'
+  | 'adminDashboard'
+  | 'adminReview'
   | 'notifications'
   | 'search'
   | 'filters'
@@ -83,6 +88,36 @@ export type ScreenName =
   | 'ownerVerification'
   | 'adminPortal'
   | 'visitRating';
+
+export type AdminCategory =
+  | 'flat_building'
+  | 'rent'
+  | 'commercial'
+  | 'property_management'
+  | 'home_loan'
+  | 'rental_agreement'
+  | 'owner_background';
+
+export interface AdminItem {
+  id: string;
+  category: AdminCategory;
+  title: string;
+  subtitle?: string;
+  submittedBy?: string;
+  phone?: string;
+  userName?: string;
+  userPhone?: string;
+  userEmail?: string;
+  amount?: string;
+  date: string;
+  location: string;
+  city?: string;
+  status: string;
+  stage: number;
+  details: Record<string, any>;
+  notes?: string;
+  rejectionReason?: string;
+}
 
 export interface ScreenState {
   name: ScreenName;
@@ -99,4 +134,24 @@ export interface FilterState {
   verifiedOnly: boolean;
   areaMin: number;
   areaMax: number;
+}
+
+export type UserRole = 'USER' | 'ADMIN';
+
+export interface AuthUser {
+  id: string;
+  email: string;
+  name: string;
+  role: UserRole;
+  phone?: string;
+  city?: string;
+  token?: string;
+}
+
+export interface UserProfile {
+  name: string;
+  phone: string;
+  email?: string;
+  city?: string;
+  role?: UserRole;
 }

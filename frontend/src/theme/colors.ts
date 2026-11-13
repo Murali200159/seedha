@@ -1,3 +1,15 @@
+// Brand Colors specifically matching Seedha Properties brand guidelines
+export const brandColors = {
+  primary: '#2e3a2f',     // Deep forest sage / luxury evergreen
+  secondary: '#687f5b',   // Earthy moss green
+  background: '#f8f6ee',  // Warm champagne ivory canvas
+  accent: '#c96f4f',      // Terracotta bronze accent
+  supporting: '#d9c9b2',  // Warm sand border / neutral
+  cardBg: '#FFFFFF',
+  textDark: '#1A1C1A',
+  textMuted: '#6B7268',
+};
+
 // Centralized Ultra-Premium Luxury Theme Color System for Seedha Properties
 // Designed for a high-end real-estate architectural aesthetic (Deep Petrol Teal + Champagne Gold + Rose Coral)
 

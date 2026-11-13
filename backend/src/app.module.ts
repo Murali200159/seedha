@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { DatabaseModule } from './database/database.module.js';
+import { EmailModule } from './modules/email/email.module.js';
 import { AuthModule } from './modules/auth/auth.module.js';
 import { PropertiesModule } from './modules/properties/properties.module.js';
 import { SiteVisitsModule } from './modules/site-visits/site-visits.module.js';
@@ -16,6 +17,7 @@ import { AppService } from './app.service.js';
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     DatabaseModule,
+    EmailModule,
     AuthModule,
     PropertiesModule,
     SiteVisitsModule,

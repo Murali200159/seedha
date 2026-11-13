@@ -2,7 +2,7 @@ import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 
 const debuggerHost = Constants.expoConfig?.hostUri?.split(':')[0];
-const host = debuggerHost || '192.168.29.234';
+const host = debuggerHost || (Platform.OS === 'android' ? '10.0.2.2' : 'localhost');
 
 const API_BASE =
   process.env.EXPO_PUBLIC_API_URL ||
@@ -79,6 +79,26 @@ export const api = {
       }
       return data;
     },
+    sendOtp: (identifier: string) =>
+      request<any>('/auth/send-otp', {
+        method: 'POST',
+        body: JSON.stringify({ identifier }),
+      }),
+    verifyOtp: async (identifier: string, otp: string) => {
+      const data = await request<any>('/auth/verify-otp', {
+        method: 'POST',
+        body: JSON.stringify({ identifier, otp }),
+      });
+      if (data?.accessToken) {
+        setAuthToken(data.accessToken);
+      }
+      return data;
+    },
+    forgotPassword: (email: string) =>
+      request<any>('/auth/forgot-password', {
+        method: 'POST',
+        body: JSON.stringify({ email }),
+      }),
     me: () => request<any>('/auth/me'),
     logout: () => {
       setAuthToken(null);

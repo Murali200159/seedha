@@ -14,13 +14,13 @@ import BookVisitScreen from './screens/BookVisitScreen';
 import ChatScreen from './screens/ChatScreen';
 import HomeLoanScreen from './screens/HomeLoanScreen';
 import RentalAgreementScreen from './screens/RentalAgreementScreen';
+import PropertyManagementScreen from './screens/PropertyManagementScreen';
+import OwnerVerificationScreen from './screens/OwnerVerificationScreen';
 import NotificationsScreen from './screens/NotificationsScreen';
 import PostPropertyScreen from './screens/PostPropertyScreen';
 import FiltersScreen from './screens/FiltersScreen';
 import SearchScreen from './screens/SearchScreen';
 import CompareScreen from './screens/CompareScreen';
-import PropertyManagementScreen from './screens/PropertyManagementScreen';
-import OwnerVerificationScreen from './screens/OwnerVerificationScreen';
 import AdminPortalScreen from './screens/AdminPortalScreen';
 import PaymentsScreen from './screens/PaymentsScreen';
 import LandingScreen from './screens/LandingScreen';
@@ -28,11 +28,15 @@ import SplashScreen from './screens/SplashScreen';
 import OnboardingScreen from './screens/auth/OnboardingScreen';
 import LoginScreen from './screens/auth/LoginScreen';
 import OTPScreen from './screens/auth/OTPScreen';
+import MobileLoginScreen from './screens/auth/MobileLoginScreen';
 import SignUpScreen from './screens/auth/SignUpScreen';
 import ProfileSetupScreen from './screens/auth/ProfileSetupScreen';
 import PropertyIntentScreen from './screens/auth/PropertyIntentScreen';
 import LocationPermissionScreen from './screens/auth/LocationPermissionScreen';
 import AuthSuccessScreen from './screens/auth/AuthSuccessScreen';
+import AdminLoginScreen from './screens/admin/AdminLoginScreen';
+import AdminDashboardScreen from './screens/admin/AdminDashboardScreen';
+import AdminReviewScreen from './screens/admin/AdminReviewScreen';
 
 import colors from './theme/colors';
 
@@ -51,6 +55,7 @@ function ScreenRouter() {
       // Auth flow
       case 'onboarding': return <OnboardingScreen />;
       case 'login': return <LoginScreen />;
+      case 'mobileLogin': return <MobileLoginScreen />;
       case 'signup': return <SignUpScreen />;
       case 'otp': return <OTPScreen />;
       case 'profileSetup': return <ProfileSetupScreen />;
@@ -70,6 +75,8 @@ function ScreenRouter() {
       case 'chat': return <ChatScreen />;
       case 'homeLoan': return <HomeLoanScreen />;
       case 'rentalAgreement': return <RentalAgreementScreen />;
+      case 'propertyManagement': return <PropertyManagementScreen />;
+      case 'ownerVerification': return <OwnerVerificationScreen />;
       case 'notifications': return <NotificationsScreen />;
       case 'postProperty': return <PostPropertyScreen />;
       case 'filters': return <FiltersScreen />;
@@ -79,6 +86,10 @@ function ScreenRouter() {
       case 'adminPortal': return <AdminPortalScreen />;
       case 'savedProperties': return <ExploreScreen />;
       case 'compare': return <CompareScreen />;
+      // Admin Operations Flow
+      case 'adminLogin': return <AdminLoginScreen />;
+      case 'adminDashboard': return <AdminDashboardScreen />;
+      case 'adminReview': return <AdminReviewScreen />;
       default: return <HomeScreen />;
     }
   };

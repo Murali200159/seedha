@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -6,516 +6,599 @@ import {
   Image,
   TouchableOpacity,
   StyleSheet,
-  Animated,
-  PanResponder,
   Platform,
 } from 'react-native';
 import {
+  Menu,
   Bell,
+  Search,
   SlidersHorizontal,
-  ChevronRight,
   Heart,
   MapPin,
   BedDouble,
   Bath,
   Square,
-  Landmark,
   House,
   KeyRound,
   Building2,
   HousePlus,
-  ShieldCheck,
-  Search,
-  ShieldAlert,
+  Landmark,
   FileText,
   UserCheck,
-  Sparkles,
   CheckCircle2,
-  TrendingUp,
+  ArrowRight,
+  User,
 } from 'lucide-react-native';
 import { useApp } from '../context/AppContext';
 import { properties } from '../data/properties';
-import PropertyCard from '../components/PropertyCard';
-import colors from '../theme/colors';
 
-const heroSlides = [
+// Popular localities in Hyderabad matching the Figma design & screenshot
+const POPULAR_LOCATIONS = [
   {
-    img: 'https://images.unsplash.com/photo-1613977257592-4871e5fcd7c4?w=800&h=420&fit=crop&auto=format',
-    tag: '✨ SEEDHA PREMIER COLLECTION',
-    headline: 'Buy, Rent, Invest & Manage All in One Place',
-    sub: 'Verified luxury homes, prime city locations & direct owners.',
-    cta: 'Explore All Properties',
-    targetScreen: 'explore',
+    id: 'loc-1',
+    name: 'Jubilee Hills',
+    city: 'Hyderabad',
+    image: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=600&h=800&fit=crop&auto=format',
   },
   {
-    img: 'https://images.unsplash.com/photo-1560472355-536de3962603?w=800&h=420&fit=crop&auto=format',
-    tag: '🛡️ 100% TITLE VERIFIED',
-    headline: 'Find verified properties for your next move.',
-    sub: 'Gated communities & luxury villas with zero hidden brokerage.',
-    cta: 'View Verified Homes',
-    targetScreen: 'propertyListing',
-    params: { type: 'buy', title: 'Buy Properties' },
+    id: 'loc-2',
+    name: 'Banjara Hills',
+    city: 'Hyderabad',
+    image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600&h=800&fit=crop&auto=format',
   },
   {
-    img: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&h=420&fit=crop&auto=format',
-    tag: '⚡ DIRECT OWNER REACH',
-    headline: 'Reach genuine buyers & verified tenants faster.',
-    sub: 'Free direct property listing with 24hr legal support.',
-    cta: 'Post Property Free',
-    targetScreen: 'postProperty',
+    id: 'loc-3',
+    name: 'Hitec City',
+    city: 'Hyderabad',
+    image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600&h=800&fit=crop&auto=format',
   },
   {
-    img: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&h=420&fit=crop&auto=format',
-    tag: '🔑 FULL PROPERTY CARE (FLOW D)',
-    headline: 'Rent, repairs, tenants and care in one place.',
-    sub: 'Dedicated field check & direct admin management.',
-    cta: 'Explore Property Care',
-    targetScreen: 'propertyManagement',
-  },
-  {
-    img: 'https://images.unsplash.com/photo-1554469384-e58fac16e23a?w=800&h=420&fit=crop&auto=format',
-    tag: '🏛️ LOWEST HOME LOAN RATES (FLOW E)',
-    headline: 'Instant EMI check & top bank loan approvals.',
-    sub: 'Competitive rates starting from 8.35% p.a. with zero fee assistance.',
-    cta: 'Check Eligibility',
-    targetScreen: 'homeLoan',
+    id: 'loc-4',
+    name: 'Gachibowli',
+    city: 'Hyderabad',
+    image: 'https://images.unsplash.com/photo-1582407947304-fd86f028f716?w=600&h=800&fit=crop&auto=format',
   },
 ];
 
-// Reusable micro-animated card wrapper with spring tactile feedback
-const AnimatedCard = ({ children, onPress, style }: { children: React.ReactNode; onPress: () => void; style?: any }) => {
-  const scale = useRef(new Animated.Value(1)).current;
-  const isNative = Platform.OS !== 'web';
-
-  const handlePressIn = () => {
-    Animated.spring(scale, { toValue: 0.96, useNativeDriver: isNative, speed: 25 }).start();
-  };
-  const handlePressOut = () => {
-    Animated.spring(scale, { toValue: 1, friction: 4, tension: 40, useNativeDriver: isNative }).start();
-  };
-
-  return (
-    <Animated.View style={[{ transform: [{ scale }] }, style]}>
-      <TouchableOpacity
-        onPress={onPress}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-        activeOpacity={0.92}
-        style={styles.fullTouch}
-      >
-        {children}
-      </TouchableOpacity>
-    </Animated.View>
-  );
-};
-
 export default function HomeScreen() {
-  const { push, savedIds, notifications, setTab } = useApp();
-  const [activeSlide, setActiveSlide] = useState(0);
-  const fadeAnim = useRef(new Animated.Value(1)).current;
-  const slideTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const { push, savedIds, toggleSaved, notifications, setTab } = useApp();
+  const [activeCategory, setActiveCategory] = useState('buy');
 
-  const recommended = properties.slice(0, 4);
+  // Find properties for spotlight, featured horizontal carousel, and recommended list
+  const spotlightProperty =
+    properties.find((p) => p.id === 'spotlight-1') || properties[0];
 
-  // Auto-slide logic (Every 3.8 seconds)
-  const startAutoSlide = () => {
-    stopAutoSlide();
-    slideTimer.current = setInterval(() => {
-      handleNextSlide();
-    }, 3800);
-  };
+  const featuredProperties = properties
+    .filter((p) => p.id === 'feat-1' || p.id === 'feat-2' || p.featured)
+    .slice(0, 4);
 
-  const stopAutoSlide = () => {
-    if (slideTimer.current) {
-      clearInterval(slideTimer.current);
-      slideTimer.current = null;
+  const recommendedProperties = properties
+    .filter((p) => p.id === 'rec-1' || p.id === 'rec-2' || (!p.featured && p.id !== 'spotlight-1'))
+    .slice(0, 4);
+
+  const handleCategoryPress = (key: string) => {
+    setActiveCategory(key);
+    switch (key) {
+      case 'buy':
+        push({ name: 'propertyListing', params: { type: 'buy', title: 'Buy Properties' } });
+        break;
+      case 'rent':
+        push({ name: 'propertyListing', params: { type: 'rent', title: 'Rent Homes' } });
+        break;
+      case 'commercial':
+        push({ name: 'propertyListing', params: { type: 'commercial', title: 'Commercial Spaces' } });
+        break;
+      case 'manage':
+        push({ name: 'propertyManagement' });
+        break;
+      case 'loans':
+        push({ name: 'homeLoan' });
+        break;
+      case 'agreements':
+        push({ name: 'rentalAgreement' });
+        break;
+      case 'verify':
+        push({ name: 'ownerVerification' });
+        break;
+      default:
+        break;
     }
   };
 
-  const isNative = Platform.OS !== 'web';
-
-  const handleNextSlide = () => {
-    Animated.timing(fadeAnim, {
-      toValue: 0.25,
-      duration: 220,
-      useNativeDriver: isNative,
-    }).start(() => {
-      setActiveSlide(prev => (prev + 1) % heroSlides.length);
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 320,
-        useNativeDriver: isNative,
-      }).start();
-    });
-  };
-
-  const handlePrevSlide = () => {
-    Animated.timing(fadeAnim, {
-      toValue: 0.25,
-      duration: 220,
-      useNativeDriver: isNative,
-    }).start(() => {
-      setActiveSlide(prev => (prev - 1 + heroSlides.length) % heroSlides.length);
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 320,
-        useNativeDriver: isNative,
-      }).start();
-    });
-  };
-
-  const handleManualSelectSlide = (index: number) => {
-    stopAutoSlide();
-    Animated.timing(fadeAnim, {
-      toValue: 0.25,
-      duration: 180,
-      useNativeDriver: isNative,
-    }).start(() => {
-      setActiveSlide(index);
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 280,
-        useNativeDriver: isNative,
-      }).start(() => {
-        startAutoSlide();
-      });
-    });
-  };
-
-  useEffect(() => {
-    startAutoSlide();
-    return () => stopAutoSlide();
-  }, []);
-
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onPanResponderRelease: (evt, gestureState) => {
-        if (gestureState.dx > 40) {
-          stopAutoSlide();
-          handlePrevSlide();
-          startAutoSlide();
-        } else if (gestureState.dx < -40) {
-          stopAutoSlide();
-          handleNextSlide();
-          startAutoSlide();
-        }
-      },
-    })
-  ).current;
-
-  const currentHero = heroSlides[activeSlide];
-
-  const handleSearchOption = (type: 'buy' | 'rent' | 'commercial') => {
-    if (type === 'buy') push({ name: 'propertyListing', params: { type: 'buy', title: 'Buy Properties' } });
-    else if (type === 'rent') push({ name: 'propertyListing', params: { type: 'rent', title: 'Rent Homes' } });
-    else if (type === 'commercial') push({ name: 'propertyListing', params: { type: 'commercial', title: 'Commercial Spaces' } });
-  };
-
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-      {/* ── Header ── */}
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.scrollContent}
+      showsVerticalScrollIndicator={false}
+    >
+      {/* ── 1. Header Bar ── */}
       <View style={styles.header}>
-        <View style={styles.headerRow}>
-          <View>
-            <View style={styles.greetingBadge}>
-              <Sparkles size={11} color={colors.gold} strokeWidth={2.4} style={{ marginRight: 4 }} />
-              <Text style={styles.greetingText}>Seedha Premier Real-Estate</Text>
-            </View>
-            <View style={styles.nameRow}>
-              <Text style={styles.userName}>Namaste, Rahul</Text>
-              <Text style={styles.waveEmoji}> ✨</Text>
-            </View>
-            <Text style={styles.subGreeting}>Direct verified owners · Zero hidden charges</Text>
-          </View>
-          <View style={styles.headerActions}>
-            <TouchableOpacity
-              onPress={() => push({ name: 'notifications' })}
-              style={styles.iconCircle}
-              activeOpacity={0.8}
-            >
-              <Bell size={18} strokeWidth={2.2} color={colors.primary} />
-              {notifications > 0 && <View style={styles.notifBadge} />}
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => push({ name: 'profile' })}
-              style={styles.avatarButton}
-              activeOpacity={0.8}
-            >
-              <Image
-                source={{ uri: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&auto=format' }}
-                style={styles.avatarImage}
-              />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Search Bar */}
-        <View style={styles.searchRow}>
+        {/* Left: Menu & Seedha Properties Brand */}
+        <View style={styles.headerLeft}>
           <TouchableOpacity
-            onPress={() => push({ name: 'search' })}
-            style={styles.searchBar}
-            activeOpacity={0.9}
+            style={styles.menuButton}
+            onPress={() => push({ name: 'profile' })}
+            activeOpacity={0.7}
           >
-            <Search size={16} color={colors.primary} strokeWidth={2.4} />
-            <Text style={styles.searchPlaceholder}>Search location, project or landmark...</Text>
+            <Menu size={20} color="#000000" strokeWidth={2.2} />
           </TouchableOpacity>
+
           <TouchableOpacity
-            onPress={() => push({ name: 'filters' })}
-            style={styles.filterButton}
+            style={styles.brandContainer}
+            onPress={() => setTab('home')}
             activeOpacity={0.8}
           >
-            <SlidersHorizontal size={16} strokeWidth={2.2} color={colors.textWhite} />
+            <View style={styles.logoBadge}>
+              <House size={13} color="#FFFFFF" strokeWidth={2.4} />
+            </View>
+            <View style={styles.brandTextStack}>
+              <Text style={styles.brandTitle}>Seedha</Text>
+              <Text style={styles.brandSubtitle}>PROPERTIES</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
+
+        {/* Right: Notifications & Profile Avatar */}
+        <View style={styles.headerRight}>
+          <TouchableOpacity
+            style={styles.notifButton}
+            onPress={() => push({ name: 'notifications' })}
+            activeOpacity={0.8}
+          >
+            <Bell size={18} color="#1A1C1A" strokeWidth={2.2} />
+            {notifications > 0 && <View style={styles.notifDot} />}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.profileAvatar}
+            onPress={() => push({ name: 'profile' })}
+            activeOpacity={0.8}
+          >
+            <Image
+              source={{ uri: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&auto=format' }}
+              style={styles.avatarImg}
+            />
           </TouchableOpacity>
         </View>
       </View>
 
-      {/* ── 1. Animated Hero Carousel ── */}
-      <View style={styles.sectionPadding}>
-        <View style={styles.bannerCard} {...panResponder.panHandlers}>
-          <Animated.Image source={{ uri: currentHero.img }} style={[styles.bannerImage, { opacity: fadeAnim }]} />
-          <View style={styles.bannerOverlay} />
-          <Animated.View style={[styles.bannerContent, { opacity: fadeAnim }]}>
-            <View>
-              <View style={styles.bannerTagPill}>
-                <Text style={styles.bannerTag}>{currentHero.tag}</Text>
-              </View>
-              <Text style={styles.bannerHeadline}>{currentHero.headline}</Text>
-              <Text style={styles.bannerSub}>{currentHero.sub}</Text>
+      {/* ── 2. Search & Filter Bar ── */}
+      <View style={styles.searchSection}>
+        <View style={styles.searchPill}>
+          <TouchableOpacity
+            style={styles.searchInputArea}
+            onPress={() => push({ name: 'search' })}
+            activeOpacity={0.85}
+          >
+            <Search size={17} color="#747874" strokeWidth={2.2} />
+            <Text style={styles.searchPlaceholder} numberOfLines={1}>
+              Search localities in Hyderabad, proper...
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.filterButton}
+            onPress={() => push({ name: 'filters' })}
+            activeOpacity={0.8}
+          >
+            <SlidersHorizontal size={16} color="#1A1C1A" strokeWidth={2.4} />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* ── 3. Service Categories Horizontal Carousel ── */}
+      <View style={styles.categoriesSection}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.categoriesContent}
+        >
+          {/* 1. Buy (Active default) */}
+          <TouchableOpacity
+            style={[
+              styles.categoryCard,
+              activeCategory === 'buy' && styles.categoryCardActive,
+            ]}
+            onPress={() => handleCategoryPress('buy')}
+            activeOpacity={0.8}
+          >
+            <View style={styles.categoryIconBox}>
+              <House size={18} color="#434844" strokeWidth={2.2} />
+            </View>
+            <Text style={styles.categoryText}>Buy</Text>
+          </TouchableOpacity>
+
+          {/* 2. Rent */}
+          <TouchableOpacity
+            style={styles.categoryCard}
+            onPress={() => handleCategoryPress('rent')}
+            activeOpacity={0.8}
+          >
+            <View style={styles.categoryIconBox}>
+              <KeyRound size={18} color="#434844" strokeWidth={2.2} />
+            </View>
+            <Text style={styles.categoryText}>Rent</Text>
+          </TouchableOpacity>
+
+          {/* 3. Commercial */}
+          <TouchableOpacity
+            style={[styles.categoryCard, { minWidth: 78 }]}
+            onPress={() => handleCategoryPress('commercial')}
+            activeOpacity={0.8}
+          >
+            <View style={styles.categoryIconBox}>
+              <Building2 size={18} color="#434844" strokeWidth={2.2} />
+            </View>
+            <Text style={styles.categoryText}>Commercial</Text>
+          </TouchableOpacity>
+
+          {/* 4. Manage (Property Management) */}
+          <TouchableOpacity
+            style={styles.categoryCard}
+            onPress={() => handleCategoryPress('manage')}
+            activeOpacity={0.8}
+          >
+            <View style={styles.categoryIconBox}>
+              <HousePlus size={18} color="#434844" strokeWidth={2.2} />
+            </View>
+            <Text style={styles.categoryText}>Manage</Text>
+          </TouchableOpacity>
+
+          {/* 5. Home Loans */}
+          <TouchableOpacity
+            style={[styles.categoryCard, { minWidth: 84 }]}
+            onPress={() => handleCategoryPress('loans')}
+            activeOpacity={0.8}
+          >
+            <View style={styles.categoryIconBox}>
+              <Landmark size={18} color="#434844" strokeWidth={2.2} />
+            </View>
+            <Text style={styles.categoryText}>Home Loans</Text>
+          </TouchableOpacity>
+
+          {/* 6. Rental Agreements */}
+          <TouchableOpacity
+            style={[styles.categoryCard, { minWidth: 84 }]}
+            onPress={() => handleCategoryPress('agreements')}
+            activeOpacity={0.8}
+          >
+            <View style={styles.categoryIconBox}>
+              <FileText size={18} color="#434844" strokeWidth={2.2} />
+            </View>
+            <Text style={styles.categoryText}>Agreements</Text>
+          </TouchableOpacity>
+
+          {/* 7. Verify Owner (Obsidian Dark Card) */}
+          <TouchableOpacity
+            style={styles.verifyOwnerCard}
+            onPress={() => handleCategoryPress('verify')}
+            activeOpacity={0.85}
+          >
+            <View style={styles.verifyOwnerIconBox}>
+              <UserCheck size={18} color="#FFFFFF" strokeWidth={2.2} />
+            </View>
+            <Text style={styles.verifyOwnerText}>Verify Owner</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </View>
+
+      {/* ── 4. Section - Featured Property Spotlight Card ── */}
+      <View style={styles.spotlightSection}>
+        <TouchableOpacity
+          style={styles.spotlightCard}
+          onPress={() =>
+            push({ name: 'propertyDetail', params: { property: spotlightProperty } })
+          }
+          activeOpacity={0.92}
+        >
+          <Image
+            source={{ uri: spotlightProperty.image }}
+            style={styles.spotlightImage}
+          />
+          {/* Dark Gradient Scrim */}
+          <View style={styles.spotlightScrim} />
+
+          {/* Top Floating Badges */}
+          <View style={styles.spotlightTopRow}>
+            <View style={styles.featuredPill}>
+              <View style={styles.featuredDot} />
+              <Text style={styles.featuredPillText}>Featured</Text>
             </View>
 
+            {/* Image Carousel Dots */}
+            <View style={styles.carouselDotsRow}>
+              <View style={styles.activeDot} />
+              <View style={styles.inactiveDot} />
+              <View style={styles.inactiveDot} />
+              <View style={styles.inactiveDot} />
+            </View>
+
+            {/* Save to favorites button */}
             <TouchableOpacity
-              onPress={() => {
-                if (currentHero.targetScreen === 'explore') setTab('explore');
-                else push({ name: currentHero.targetScreen as any, params: currentHero.params });
-              }}
-              style={styles.bannerCta}
-              activeOpacity={0.9}
+              style={styles.spotlightFavButton}
+              onPress={() => toggleSaved(spotlightProperty.id)}
+              activeOpacity={0.8}
             >
-              <Text style={styles.bannerCtaText}>{currentHero.cta}</Text>
-              <View style={styles.bannerCtaIcon}>
-                <ChevronRight size={12} color={colors.textWhite} strokeWidth={3} />
+              <Heart
+                size={17}
+                color={savedIds.has(spotlightProperty.id) ? '#FF385C' : '#1A1C1A'}
+                fill={savedIds.has(spotlightProperty.id) ? '#FF385C' : 'transparent'}
+                strokeWidth={2.2}
+              />
+            </TouchableOpacity>
+          </View>
+
+          {/* Bottom Property Info */}
+          <View style={styles.spotlightBottomInfo}>
+            <View style={styles.spotlightMainRow}>
+              <View style={styles.spotlightTitleCol}>
+                <Text style={styles.spotlightTitle} numberOfLines={2}>
+                  {spotlightProperty.title}
+                </Text>
+                <View style={styles.spotlightLocationRow}>
+                  <MapPin size={12} color="rgba(255, 255, 255, 0.85)" strokeWidth={2.2} />
+                  <Text style={styles.spotlightLocationText} numberOfLines={1}>
+                    {spotlightProperty.location}
+                  </Text>
+                </View>
+              </View>
+
+              <Text style={styles.spotlightPrice}>
+                {spotlightProperty.priceLabel}
+              </Text>
+            </View>
+
+            {/* Frosted Glass Specs Pill Tray */}
+            <View style={styles.specsPillTray}>
+              <View style={styles.specItem}>
+                <BedDouble size={14} color="#FFDBCC" strokeWidth={2.2} />
+                <Text style={styles.specText}>{spotlightProperty.bedrooms} Beds</Text>
+              </View>
+              <View style={styles.specDot} />
+              <View style={styles.specItem}>
+                <Bath size={14} color="#FFDBCC" strokeWidth={2.2} />
+                <Text style={styles.specText}>{spotlightProperty.bathrooms} Baths</Text>
+              </View>
+              <View style={styles.specDot} />
+              <View style={styles.specItem}>
+                <Square size={13} color="#FFDBCC" strokeWidth={2.2} />
+                <Text style={styles.specText}>
+                  {spotlightProperty.area.toLocaleString()} sqft
+                </Text>
+              </View>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </View>
+
+      {/* ── 5. Popular Locations Section ── */}
+      <View style={styles.locationsSection}>
+        <View style={styles.sectionHeaderRow}>
+          <View>
+            <Text style={styles.sectionTitle}>Popular Locations</Text>
+            <Text style={styles.sectionSubtitle}>
+              Top curated Hyderabad localities
+            </Text>
+          </View>
+          <TouchableOpacity
+            onPress={() => push({ name: 'search' })}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.viewAllText}>View all &gt;</Text>
+          </TouchableOpacity>
+        </View>
+
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.locationsScroll}
+        >
+          {POPULAR_LOCATIONS.map((loc) => (
+            <TouchableOpacity
+              key={loc.id}
+              style={styles.locationCard}
+              onPress={() =>
+                push({
+                  name: 'propertyListing',
+                  params: { location: loc.name, title: loc.name },
+                })
+              }
+              activeOpacity={0.88}
+            >
+              <Image source={{ uri: loc.image }} style={styles.locationImage} />
+              <View style={styles.locationScrim} />
+              <View style={styles.locationTextStack}>
+                <Text style={styles.locationName}>{loc.name}</Text>
+                <Text style={styles.locationCity}>{loc.city}</Text>
               </View>
             </TouchableOpacity>
-          </Animated.View>
-
-          {/* Carousel Pagination Dots */}
-          <View style={styles.paginationDots}>
-            {heroSlides.map((_, i) => (
-              <TouchableOpacity
-                key={i}
-                onPress={() => handleManualSelectSlide(i)}
-                style={[
-                  styles.dot,
-                  {
-                    width: i === activeSlide ? 20 : 6,
-                    backgroundColor: i === activeSlide ? colors.goldLight : 'rgba(255,255,255,0.45)',
-                  },
-                ]}
-              />
-            ))}
-          </View>
-        </View>
+          ))}
+        </ScrollView>
       </View>
 
-      {/* ── Luxury Trust Strip ── */}
-      <View style={styles.sectionPadding}>
-        <View style={styles.trustStrip}>
-          <View style={styles.trustItem}>
-            <Sparkles size={13} color={colors.gold} strokeWidth={2.4} />
-            <Text style={styles.trustText}>Direct Owners</Text>
-          </View>
-          <View style={styles.trustDivider} />
-          <View style={styles.trustItem}>
-            <ShieldCheck size={13} color={colors.primary} strokeWidth={2.4} />
-            <Text style={styles.trustText}>Title Verified</Text>
-          </View>
-          <View style={styles.trustDivider} />
-          <View style={styles.trustItem}>
-            <CheckCircle2 size={13} color={colors.success} strokeWidth={2.4} />
-            <Text style={styles.trustText}>₹0 Brokerage</Text>
-          </View>
+      {/* ── 6. Featured Properties (Horizontal Carousel) ── */}
+      <View style={styles.featuredSection}>
+        <View style={styles.sectionHeaderPadding}>
+          <Text style={styles.sectionTitleBlack}>Featured Properties</Text>
+          <Text style={styles.sectionSubtitleMuted}>
+            Handpicked properties selected for you
+          </Text>
         </View>
+
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.featuredScroll}
+        >
+          {featuredProperties.map((prop) => (
+            <TouchableOpacity
+              key={prop.id}
+              style={styles.featuredCard}
+              onPress={() => push({ name: 'propertyDetail', params: { property: prop } })}
+              activeOpacity={0.9}
+            >
+              <View style={styles.featuredCardImageWrapper}>
+                <Image source={{ uri: prop.image }} style={styles.featuredCardImage} />
+
+                {/* For Sale / Rent Pill */}
+                <View style={styles.listingTypePill}>
+                  <Text style={styles.listingTypeText}>
+                    {prop.listingType === 'rent' ? 'FOR RENT' : 'FOR SALE'}
+                  </Text>
+                </View>
+
+                {/* Favorite Heart Button */}
+                <TouchableOpacity
+                  style={styles.smallFavButton}
+                  onPress={() => toggleSaved(prop.id)}
+                  activeOpacity={0.8}
+                >
+                  <Heart
+                    size={14}
+                    color={savedIds.has(prop.id) ? '#FF385C' : '#1A1C1A'}
+                    fill={savedIds.has(prop.id) ? '#FF385C' : 'transparent'}
+                    strokeWidth={2.2}
+                  />
+                </TouchableOpacity>
+
+                {/* Bottom Chips on Image */}
+                <View style={styles.imageBottomChipsRow}>
+                  <View style={styles.chipDark}>
+                    <Text style={styles.chipDarkText}>
+                      {prop.city || 'Hyderabad'}
+                    </Text>
+                  </View>
+                  <View style={styles.chipBordered}>
+                    <Text style={styles.chipBorderedText}>Ready to Move</Text>
+                  </View>
+                </View>
+              </View>
+
+              {/* Card Body Details */}
+              <View style={styles.featuredCardBody}>
+                <View style={styles.featuredTitleRow}>
+                  <Text style={styles.featuredTitle} numberOfLines={1}>
+                    {prop.title}
+                  </Text>
+                  {prop.verified && (
+                    <CheckCircle2 size={16} color="#055808" strokeWidth={2.4} />
+                  )}
+                </View>
+
+                <View style={styles.cardLocationRow}>
+                  <MapPin size={11} color="#737373" strokeWidth={2} />
+                  <Text style={styles.cardLocationText} numberOfLines={1}>
+                    {prop.location}
+                  </Text>
+                </View>
+
+                <View style={styles.cardDivider} />
+
+                <View style={styles.priceRow}>
+                  <Text style={styles.cardPriceText}>{prop.priceLabel}</Text>
+                  <Text style={styles.cardExploreText}>Explore &rarr;</Text>
+                </View>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
       </View>
 
-      {/* ── 2. Search Property Group (Buy | Rent | Commercial) ── */}
-      <View style={styles.sectionPadding}>
-        <View style={styles.sectionTitleRow}>
-          <Text style={styles.groupSectionTitle}>Search Property</Text>
-          <Text style={styles.groupSectionTag}>DIRECT LISTINGS</Text>
-        </View>
-        <View style={styles.searchPropertyGrid}>
-          {/* Buy */}
-          <AnimatedCard onPress={() => handleSearchOption('buy')} style={styles.searchOptionCardWrapper}>
-            <View style={styles.searchOptionCard}>
-              <View style={[styles.searchOptionIconBox, { backgroundColor: colors.primaryBg }]}>
-                <House size={20} color={colors.primary} strokeWidth={2.2} />
-              </View>
-              <Text style={styles.searchOptionTitle}>Buy</Text>
-              <Text style={styles.searchOptionSub}>Gated homes & flats</Text>
-            </View>
-          </AnimatedCard>
-
-          {/* Rent */}
-          <AnimatedCard onPress={() => handleSearchOption('rent')} style={styles.searchOptionCardWrapper}>
-            <View style={styles.searchOptionCard}>
-              <View style={[styles.searchOptionIconBox, { backgroundColor: colors.secondaryBg }]}>
-                <KeyRound size={20} color={colors.secondary} strokeWidth={2.2} />
-              </View>
-              <Text style={styles.searchOptionTitle}>Rent</Text>
-              <Text style={styles.searchOptionSub}>Verified owner homes</Text>
-            </View>
-          </AnimatedCard>
-
-          {/* Commercial */}
-          <AnimatedCard onPress={() => handleSearchOption('commercial')} style={styles.searchOptionCardWrapper}>
-            <View style={styles.searchOptionCard}>
-              <View style={[styles.searchOptionIconBox, { backgroundColor: colors.accentBg }]}>
-                <Building2 size={20} color={colors.accent} strokeWidth={2.2} />
-              </View>
-              <Text style={styles.searchOptionTitle}>Commercial</Text>
-              <Text style={styles.searchOptionSub}>Offices & retail space</Text>
-            </View>
-          </AnimatedCard>
-        </View>
-      </View>
-
-      {/* ── 3. More Services Group ── */}
-      <View style={styles.sectionPadding}>
-        <View style={styles.sectionTitleRow}>
-          <Text style={styles.groupSectionTitle}>Specialized Services</Text>
-          <Text style={styles.groupSectionTag}>END-TO-END FLOWS</Text>
-        </View>
-        <View style={styles.moreServicesGrid}>
-          {/* Property Management (Flow D) */}
-          <AnimatedCard onPress={() => push({ name: 'propertyManagement' })} style={styles.moreServiceCardWrapper}>
-            <View style={styles.moreServiceCard}>
-              <View style={[styles.moreServiceIconBox, { backgroundColor: colors.primaryBg }]}>
-                <ShieldCheck size={18} color={colors.primary} strokeWidth={2.2} />
-              </View>
-              <View style={styles.moreServiceTextCol}>
-                <View style={styles.serviceTitleRow}>
-                  <Text style={styles.moreServiceTitle}>Property Care</Text>
-                  <View style={styles.miniTagTeal}>
-                    <Text style={styles.miniTagText}>Flow D</Text>
-                  </View>
-                </View>
-                <Text style={styles.moreServiceSub}>Flat upload & direct admin</Text>
-              </View>
-            </View>
-          </AnimatedCard>
-
-          {/* Rental Agreements (Flow F) */}
-          <AnimatedCard onPress={() => push({ name: 'rentalAgreement' })} style={styles.moreServiceCardWrapper}>
-            <View style={styles.moreServiceCard}>
-              <View style={[styles.moreServiceIconBox, { backgroundColor: colors.secondaryBg }]}>
-                <FileText size={18} color={colors.secondary} strokeWidth={2.2} />
-              </View>
-              <View style={styles.moreServiceTextCol}>
-                <View style={styles.serviceTitleRow}>
-                  <Text style={styles.moreServiceTitle}>Agreements</Text>
-                  <View style={styles.miniTagGold}>
-                    <Text style={[styles.miniTagText, { color: colors.goldDark }]}>₹999</Text>
-                  </View>
-                </View>
-                <Text style={styles.moreServiceSub}>Govt stamp & e-signature</Text>
-              </View>
-            </View>
-          </AnimatedCard>
-
-          {/* Home Loans (Flow E) */}
-          <AnimatedCard onPress={() => push({ name: 'homeLoan' })} style={styles.moreServiceCardWrapper}>
-            <View style={styles.moreServiceCard}>
-              <View style={[styles.moreServiceIconBox, { backgroundColor: colors.goldBg }]}>
-                <Landmark size={18} color={colors.goldDark} strokeWidth={2.2} />
-              </View>
-              <View style={styles.moreServiceTextCol}>
-                <View style={styles.serviceTitleRow}>
-                  <Text style={styles.moreServiceTitle}>Home Loans</Text>
-                  <View style={styles.miniTagGold}>
-                    <Text style={[styles.miniTagText, { color: colors.goldDark }]}>8.35%</Text>
-                  </View>
-                </View>
-                <Text style={styles.moreServiceSub}>EMI calc & bank compare</Text>
-              </View>
-            </View>
-          </AnimatedCard>
-
-          {/* Verify Owner Background (Flow G & B) */}
-          <AnimatedCard onPress={() => push({ name: 'ownerVerification' })} style={styles.moreServiceCardWrapper}>
-            <View style={styles.moreServiceCard}>
-              <View style={[styles.moreServiceIconBox, { backgroundColor: colors.primaryBg }]}>
-                <UserCheck size={18} color={colors.primary} strokeWidth={2.2} />
-              </View>
-              <View style={styles.moreServiceTextCol}>
-                <View style={styles.serviceTitleRow}>
-                  <Text style={styles.moreServiceTitle}>Owner Check</Text>
-                  <View style={styles.miniTagGold}>
-                    <Text style={[styles.miniTagText, { color: colors.goldDark }]}>₹499</Text>
-                  </View>
-                </View>
-                <Text style={styles.moreServiceSub}>Title check & digital report</Text>
-              </View>
-            </View>
-          </AnimatedCard>
-
-          {/* Post Property */}
-          <AnimatedCard onPress={() => setTab('post')} style={styles.moreServiceCardWrapper}>
-            <View style={styles.moreServiceCard}>
-              <View style={[styles.moreServiceIconBox, { backgroundColor: colors.accentBg }]}>
-                <HousePlus size={18} color={colors.accent} strokeWidth={2.2} />
-              </View>
-              <View style={styles.moreServiceTextCol}>
-                <View style={styles.serviceTitleRow}>
-                  <Text style={styles.moreServiceTitle}>Post Property</Text>
-                  <View style={styles.miniTagCoral}>
-                    <Text style={[styles.miniTagText, { color: colors.accent }]}>Free</Text>
-                  </View>
-                </View>
-                <Text style={styles.moreServiceSub}>Reach buyers & tenants</Text>
-              </View>
-            </View>
-          </AnimatedCard>
-
-          {/* Admin Operations Desk (Section 2) */}
-          <AnimatedCard onPress={() => push({ name: 'adminPortal' })} style={styles.moreServiceCardWrapper}>
-            <View style={[styles.moreServiceCard, { borderColor: colors.primary, borderWidth: 1.2 }]}>
-              <View style={[styles.moreServiceIconBox, { backgroundColor: colors.primary }]}>
-                <ShieldAlert size={18} color={colors.textWhite} strokeWidth={2.2} />
-              </View>
-              <View style={styles.moreServiceTextCol}>
-                <View style={styles.serviceTitleRow}>
-                  <Text style={[styles.moreServiceTitle, { color: colors.primary }]}>Admin Ops</Text>
-                  <View style={styles.miniTagTeal}>
-                    <Text style={styles.miniTagText}>Section 2</Text>
-                  </View>
-                </View>
-                <Text style={styles.moreServiceSub}>7 review & verify queues</Text>
-              </View>
-            </View>
-          </AnimatedCard>
-        </View>
-      </View>
-
-      {/* ── Recommended Properties ── */}
-      <View style={styles.sectionPadding}>
-        <View style={styles.sectionHeader}>
-          <View>
-            <Text style={styles.sectionTitle}>Curated Residences</Text>
-            <Text style={styles.sectionSubTitle}>Hand-picked properties with verified documentation</Text>
-          </View>
-          <TouchableOpacity onPress={() => setTab('explore')} style={styles.seeAllButton}>
-            <Text style={styles.seeAllText}>View All</Text>
-            <ChevronRight size={14} color={colors.primary} strokeWidth={2.5} />
-          </TouchableOpacity>
+      {/* ── 7. Section - Promotional Banner ── */}
+      <TouchableOpacity
+        style={styles.promoBanner}
+        onPress={() => push({ name: 'ownerVerification' })}
+        activeOpacity={0.9}
+      >
+        <View style={styles.promoLeftCol}>
+          <Text style={styles.promoEyebrow}>TRUST YOU CAN COUNT ON</Text>
+          <Text style={styles.promoHeading}>Verified Owners. Safer Decisions.</Text>
+          <Text style={styles.promoDesc}>
+            All property documents are verified with sub-registrar records & digital title audit.
+          </Text>
         </View>
 
-        <View style={styles.propertiesGrid}>
-          {recommended.map(property => (
-            <View key={property.id} style={styles.propertyCol}>
-              <PropertyCard property={property} compact />
-            </View>
+        <View style={styles.promoArrowButton}>
+          <ArrowRight size={16} color="#000000" strokeWidth={2.6} />
+        </View>
+      </TouchableOpacity>
+
+      {/* ── 8. Recommended Properties (Vertical List) ── */}
+      <View style={styles.recommendedSection}>
+        <View style={styles.sectionHeaderPadding}>
+          <Text style={styles.sectionTitleBlack}>Recommended Properties</Text>
+          <Text style={styles.sectionSubtitleMuted}>
+            Properties that match your preferences
+          </Text>
+        </View>
+
+        <View style={styles.recommendedList}>
+          {recommendedProperties.map((prop) => (
+            <TouchableOpacity
+              key={prop.id}
+              style={styles.recommendedCard}
+              onPress={() => push({ name: 'propertyDetail', params: { property: prop } })}
+              activeOpacity={0.92}
+            >
+              <View style={styles.recommendedImageWrapper}>
+                <Image source={{ uri: prop.image }} style={styles.recommendedImage} />
+
+                <View style={styles.listingTypePill}>
+                  <Text style={styles.listingTypeText}>
+                    {prop.listingType === 'rent' ? 'FOR RENT' : 'FOR SALE'}
+                  </Text>
+                </View>
+
+                <TouchableOpacity
+                  style={styles.smallFavButton}
+                  onPress={() => toggleSaved(prop.id)}
+                  activeOpacity={0.8}
+                >
+                  <Heart
+                    size={14}
+                    color={savedIds.has(prop.id) ? '#FF385C' : '#1A1C1A'}
+                    fill={savedIds.has(prop.id) ? '#FF385C' : 'transparent'}
+                    strokeWidth={2.2}
+                  />
+                </TouchableOpacity>
+
+                <View style={styles.imageBottomChipsRow}>
+                  <View style={styles.chipDark}>
+                    <Text style={styles.chipDarkText}>
+                      {prop.area ? `${prop.area.toLocaleString()} sq.ft` : '2,450 sq.ft'}
+                    </Text>
+                  </View>
+                  <View style={styles.chipBordered}>
+                    <Text style={styles.chipBorderedText}>Ready to Move</Text>
+                  </View>
+                </View>
+              </View>
+
+              <View style={styles.recommendedBody}>
+                <View style={styles.featuredTitleRow}>
+                  <Text style={styles.recommendedTitle} numberOfLines={1}>
+                    {prop.title}
+                  </Text>
+                  {prop.verified && (
+                    <CheckCircle2 size={18} color="#055808" strokeWidth={2.4} />
+                  )}
+                </View>
+
+                <View style={styles.cardLocationRow}>
+                  <MapPin size={12} color="#737373" strokeWidth={2} />
+                  <Text style={styles.cardLocationText} numberOfLines={1}>
+                    {prop.location}
+                  </Text>
+                </View>
+
+                <View style={styles.cardDivider} />
+
+                <View style={styles.priceRow}>
+                  <Text style={styles.recPriceText}>{prop.priceLabel}</Text>
+                  <Text style={styles.cardExploreText}>Explore &rarr;</Text>
+                </View>
+              </View>
+            </TouchableOpacity>
           ))}
         </View>
       </View>
@@ -526,460 +609,693 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: '#FFFFFF',
   },
   scrollContent: {
-    paddingBottom: 32,
+    paddingBottom: 40,
   },
-  fullTouch: {
-    width: '100%',
-  },
+
+  // ── Header Bar ──
   header: {
-    paddingHorizontal: 20,
-    paddingTop: 14,
-    paddingBottom: 16,
-    backgroundColor: colors.surface,
-    borderBottomLeftRadius: 26,
-    borderBottomRightRadius: 26,
-    shadowColor: colors.shadowColor,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.05,
-    shadowRadius: 12,
-    elevation: 4,
-    marginBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderLight,
-  },
-  headerRow: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    paddingHorizontal: 20,
+    height: 64,
+    backgroundColor: '#FFFFFF',
   },
-  greetingBadge: {
+  headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 2,
+    gap: 12,
   },
-  greetingText: {
-    fontFamily: colors.fontFamily,
-    fontSize: 11,
+  menuButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 9999,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  brandContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  logoBadge: {
+    width: 24,
+    height: 24,
+    borderRadius: 7,
+    backgroundColor: '#000000',
+    borderWidth: 1,
+    borderColor: '#262626',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  brandTextStack: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 5,
+  },
+  brandTitle: {
+    fontFamily: 'Plus Jakarta Sans',
+    fontSize: 16,
     fontWeight: '700',
-    color: colors.goldDark,
-    letterSpacing: 0.5,
-    textTransform: 'uppercase',
-  },
-  nameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 2,
-  },
-  userName: {
-    fontFamily: colors.fontFamily,
-    fontSize: 23,
-    fontWeight: '800',
-    color: colors.textPrimary,
+    color: '#000000',
     letterSpacing: -0.4,
   },
-  waveEmoji: {
-    fontSize: 20,
-  },
-  subGreeting: {
-    fontFamily: colors.fontFamily,
-    fontSize: 12,
-    color: colors.textSecondary,
-    marginTop: 2,
+  brandSubtitle: {
+    fontFamily: 'Plus Jakarta Sans',
+    fontSize: 9,
     fontWeight: '500',
+    color: '#737373',
+    letterSpacing: 1.8,
   },
-  headerActions: {
+  headerRight: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 8,
   },
-  iconCircle: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: colors.surfaceSoft,
-    alignItems: 'center',
+  notifButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 9999,
+    backgroundColor: '#F4F3F0',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: colors.borderLight,
+    alignItems: 'center',
+    position: 'relative',
   },
-  notifBadge: {
+  notifDot: {
     position: 'absolute',
-    top: 9,
-    right: 9,
+    top: 11,
+    right: 11,
     width: 8,
     height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.accent,
-  },
-  avatarButton: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    overflow: 'hidden',
+    borderRadius: 9999,
+    backgroundColor: '#863838',
     borderWidth: 2,
-    borderColor: colors.primary,
+    borderColor: '#FAF9F6',
   },
-  avatarImage: {
+  profileAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 9999,
+    backgroundColor: '#09130E',
+    overflow: 'hidden',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarImg: {
     width: '100%',
     height: '100%',
   },
-  searchRow: {
-    flexDirection: 'row',
-    marginTop: 14,
-    gap: 10,
+
+  // ── Search & Filter ──
+  searchSection: {
+    paddingHorizontal: 20,
+    paddingVertical: 8,
   },
-  searchBar: {
+  searchPill: {
+    height: 56,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 9999,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingLeft: 18,
+    paddingRight: 6,
+    shadowColor: '#1E2822',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 20,
+    elevation: 3,
+    borderWidth: Platform.OS === 'android' ? 0.8 : 0.5,
+    borderColor: '#EFEEEB',
+  },
+  searchInputArea: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surfaceSoft,
-    borderRadius: 16,
-    paddingHorizontal: 14,
-    height: 48,
-    borderWidth: 1,
-    borderColor: colors.borderLight,
+    gap: 10,
+    height: '100%',
   },
   searchPlaceholder: {
-    fontSize: 13,
-    color: colors.textMuted,
-    marginLeft: 10,
+    fontFamily: 'Plus Jakarta Sans',
+    fontSize: 13.5,
+    color: '#747874',
     flex: 1,
-    fontWeight: '500',
   },
   filterButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
+    width: 44,
+    height: 44,
+    borderRadius: 9999,
+    backgroundColor: '#EFEEEB',
     justifyContent: 'center',
-    shadowColor: colors.primary,
+    alignItems: 'center',
+  },
+
+  // ── Categories ──
+  categoriesSection: {
+    paddingVertical: 8,
+  },
+  categoriesContent: {
+    paddingHorizontal: 20,
+    gap: 10,
+  },
+  categoryCard: {
+    width: 74,
+    minWidth: 74,
+    height: 86,
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#1E2822',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
+    shadowOpacity: 0.04,
+    shadowRadius: 18,
+    elevation: 2,
+    borderWidth: 0.6,
+    borderColor: '#F0EFEA',
+  },
+  categoryCardActive: {
+    borderColor: '#E2E0D8',
+  },
+  categoryIconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    backgroundColor: '#F4F3F0',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  categoryText: {
+    fontFamily: 'Plus Jakarta Sans',
+    fontSize: 11,
+    fontWeight: '500',
+    color: '#1A1C1A',
+    textAlign: 'center',
+    letterSpacing: 0.2,
+  },
+  verifyOwnerCard: {
+    minWidth: 89,
+    height: 86,
+    borderRadius: 16,
+    backgroundColor: '#09130E',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
     shadowRadius: 8,
     elevation: 4,
   },
-  sectionPadding: {
-    paddingHorizontal: 18,
-    marginBottom: 16,
+  verifyOwnerIconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    backgroundColor: '#1E2822',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 6,
   },
-  bannerCard: {
-    height: 172,
-    borderRadius: 22,
+  verifyOwnerText: {
+    fontFamily: 'Plus Jakarta Sans',
+    fontSize: 11,
+    fontWeight: '500',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    letterSpacing: 0.2,
+  },
+
+  // ── Spotlight Card ──
+  spotlightSection: {
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+  },
+  spotlightCard: {
+    height: 320,
+    borderRadius: 24,
     overflow: 'hidden',
+    backgroundColor: '#EFEEEB',
+    shadowColor: '#1E2822',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.14,
+    shadowRadius: 32,
+    elevation: 8,
     position: 'relative',
-    shadowColor: colors.shadowColor,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.12,
-    shadowRadius: 14,
-    elevation: 5,
+    justifyContent: 'space-between',
+    padding: 16,
   },
-  bannerImage: {
+  spotlightImage: {
+    ...StyleSheet.absoluteFill,
     width: '100%',
     height: '100%',
-    resizeMode: 'cover',
   },
-  bannerOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: colors.overlayMedium,
+  spotlightScrim: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: 'rgba(9, 19, 14, 0.42)',
   },
-  bannerContent: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    padding: 16,
+  spotlightTopRow: {
+    flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
+    zIndex: 2,
   },
-  bannerTagPill: {
-    backgroundColor: 'rgba(255, 255, 255, 0.22)',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    alignSelf: 'flex-start',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.35)',
-    marginBottom: 4,
-  },
-  bannerTag: {
-    fontFamily: colors.fontFamily,
-    fontSize: 10,
-    fontWeight: '800',
-    color: colors.textWhite,
-    letterSpacing: 0.6,
-  },
-  bannerHeadline: {
-    fontFamily: colors.fontFamily,
-    fontSize: 18,
-    fontWeight: '800',
-    color: colors.textWhite,
-    lineHeight: 23,
-  },
-  bannerSub: {
-    fontFamily: colors.fontFamily,
-    fontSize: 11,
-    color: 'rgba(255,255,255,0.85)',
-    marginTop: 4,
-    fontWeight: '500',
-  },
-  bannerCta: {
+  featuredPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderRadius: 20,
-    paddingLeft: 12,
-    paddingRight: 6,
-    paddingVertical: 6,
-    alignSelf: 'flex-start',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
+    gap: 6,
+    backgroundColor: 'rgba(9, 19, 14, 0.8)',
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 9999,
   },
-  bannerCtaText: {
-    fontFamily: colors.fontFamily,
-    fontSize: 12,
-    fontWeight: '700',
-    color: colors.primary,
-    marginRight: 6,
-  },
-  bannerCtaIcon: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  paginationDots: {
-    position: 'absolute',
-    bottom: 12,
-    right: 14,
-    flexDirection: 'row',
-    gap: 4,
-  },
-  dot: {
+  featuredDot: {
+    width: 6,
     height: 6,
-    borderRadius: 3,
+    borderRadius: 9999,
+    backgroundColor: '#FFDBCC',
   },
-  trustStrip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: colors.surface,
-    borderRadius: 16,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderWidth: 1,
-    borderColor: colors.borderLight,
-    shadowColor: colors.shadowColor,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    elevation: 2,
+  featuredPillText: {
+    fontFamily: 'Plus Jakarta Sans',
+    fontSize: 11,
+    fontWeight: '500',
+    color: '#FFFFFF',
+    letterSpacing: 0.4,
   },
-  trustItem: {
+  carouselDotsRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
   },
-  trustText: {
-    fontFamily: colors.fontFamily,
-    fontSize: 11,
-    fontWeight: '700',
-    color: colors.textPrimary,
+  activeDot: {
+    width: 20,
+    height: 5,
+    borderRadius: 9999,
+    backgroundColor: '#FFFFFF',
   },
-  trustDivider: {
-    width: 1,
-    height: 16,
-    backgroundColor: colors.borderLight,
+  inactiveDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 9999,
+    backgroundColor: 'rgba(255, 255, 255, 0.4)',
   },
-  sectionTitleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  groupSectionTitle: {
-    fontFamily: colors.fontFamily,
-    fontSize: 16,
-    fontWeight: '800',
-    color: colors.textPrimary,
-    letterSpacing: -0.2,
-  },
-  groupSectionTag: {
-    fontFamily: colors.fontFamily,
-    fontSize: 10,
-    fontWeight: '700',
-    color: colors.goldDark,
-    letterSpacing: 0.6,
-  },
-  searchPropertyGrid: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  searchOptionCardWrapper: {
-    flex: 1,
-  },
-  searchOptionCard: {
-    backgroundColor: colors.surface,
-    borderRadius: 18,
-    paddingVertical: 14,
-    paddingHorizontal: 8,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.borderLight,
-    elevation: 2,
-    shadowColor: colors.shadowColor,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-  },
-  searchOptionIconBox: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    alignItems: 'center',
+  spotlightFavButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 9999,
+    backgroundColor: 'rgba(250, 249, 246, 0.9)',
     justifyContent: 'center',
-    marginBottom: 8,
-  },
-  searchOptionTitle: {
-    fontFamily: colors.fontFamily,
-    fontSize: 13,
-    fontWeight: '700',
-    color: colors.textPrimary,
-    textAlign: 'center',
-  },
-  searchOptionSub: {
-    fontFamily: colors.fontFamily,
-    fontSize: 10,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    marginTop: 2,
-    fontWeight: '500',
-  },
-  moreServicesGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-  },
-  moreServiceCardWrapper: {
-    width: '48.5%',
-  },
-  moreServiceCard: {
-    backgroundColor: colors.surface,
-    borderRadius: 18,
-    padding: 12,
-    flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.borderLight,
-    elevation: 2,
-    shadowColor: colors.shadowColor,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
   },
-  moreServiceIconBox: {
-    width: 36,
-    height: 36,
-    borderRadius: 11,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 10,
+  spotlightBottomInfo: {
+    zIndex: 2,
   },
-  moreServiceTextCol: {
-    flex: 1,
-  },
-  serviceTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  moreServiceTitle: {
-    fontFamily: colors.fontFamily,
-    fontSize: 12,
-    fontWeight: '700',
-    color: colors.textPrimary,
-  },
-  miniTagTeal: {
-    backgroundColor: colors.primaryBg,
-    paddingHorizontal: 5,
-    paddingVertical: 1,
-    borderRadius: 4,
-  },
-  miniTagGold: {
-    backgroundColor: colors.goldBg,
-    paddingHorizontal: 5,
-    paddingVertical: 1,
-    borderRadius: 4,
-  },
-  miniTagCoral: {
-    backgroundColor: colors.accentBg,
-    paddingHorizontal: 5,
-    paddingVertical: 1,
-    borderRadius: 4,
-  },
-  miniTagText: {
-    fontFamily: colors.fontFamily,
-    fontSize: 9,
-    fontWeight: '700',
-    color: colors.primary,
-  },
-  moreServiceSub: {
-    fontFamily: colors.fontFamily,
-    fontSize: 10,
-    color: colors.textSecondary,
-    marginTop: 2,
-    fontWeight: '500',
-  },
-  sectionHeader: {
+  spotlightMainRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-end',
+    marginBottom: 8,
+  },
+  spotlightTitleCol: {
+    flex: 1,
+    marginRight: 10,
+  },
+  spotlightTitle: {
+    fontFamily: 'Plus Jakarta Sans',
+    fontSize: 19,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    letterSpacing: -0.3,
+    lineHeight: 25,
+  },
+  spotlightLocationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 4,
+  },
+  spotlightLocationText: {
+    fontFamily: 'Plus Jakarta Sans',
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.85)',
+  },
+  spotlightPrice: {
+    fontFamily: 'Plus Jakarta Sans',
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: -0.4,
+  },
+  specsPillTray: {
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    borderRadius: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 6,
+  },
+  specItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  specText: {
+    fontFamily: 'Plus Jakarta Sans',
+    fontSize: 11,
+    fontWeight: '500',
+    color: 'rgba(255, 255, 255, 0.9)',
+    letterSpacing: 0.3,
+  },
+  specDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 9999,
+    backgroundColor: 'rgba(255, 255, 255, 0.4)',
+  },
+
+  // ── Locations ──
+  locationsSection: {
+    paddingVertical: 14,
+  },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    paddingHorizontal: 20,
     marginBottom: 12,
   },
   sectionTitle: {
-    fontSize: 17,
-    fontWeight: '800',
-    color: colors.textPrimary,
+    fontFamily: 'Plus Jakarta Sans',
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1A1C1A',
     letterSpacing: -0.2,
   },
-  sectionSubTitle: {
-    fontSize: 11,
-    fontWeight: '500',
-    color: colors.textSecondary,
+  sectionSubtitle: {
+    fontFamily: 'Plus Jakarta Sans',
+    fontSize: 12,
+    color: '#434844',
     marginTop: 2,
   },
-  seeAllButton: {
+  viewAllText: {
+    fontFamily: 'Plus Jakarta Sans',
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#1A1C1A',
+  },
+  locationsScroll: {
+    paddingHorizontal: 20,
+    gap: 12,
+  },
+  locationCard: {
+    width: 130,
+    height: 176,
+    borderRadius: 16,
+    overflow: 'hidden',
+    backgroundColor: '#EFEEEB',
+    position: 'relative',
+    justifyContent: 'flex-end',
+    padding: 12,
+  },
+  locationImage: {
+    ...StyleSheet.absoluteFill,
+    width: '100%',
+    height: '100%',
+  },
+  locationScrim: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: 'rgba(9, 19, 14, 0.4)',
+  },
+  locationTextStack: {
+    zIndex: 2,
+  },
+  locationName: {
+    fontFamily: 'Plus Jakarta Sans',
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    letterSpacing: -0.2,
+  },
+  locationCity: {
+    fontFamily: 'Plus Jakarta Sans',
+    fontSize: 11,
+    color: 'rgba(255, 255, 255, 0.7)',
+    marginTop: 1,
+  },
+
+  // ── Featured Properties ──
+  featuredSection: {
+    paddingVertical: 10,
+  },
+  sectionHeaderPadding: {
+    paddingHorizontal: 20,
+    marginBottom: 12,
+  },
+  sectionTitleBlack: {
+    fontFamily: 'Plus Jakarta Sans',
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#000000',
+    letterSpacing: -0.4,
+  },
+  sectionSubtitleMuted: {
+    fontFamily: 'Plus Jakarta Sans',
+    fontSize: 11,
+    fontWeight: '500',
+    color: '#737373',
+    marginTop: 2,
+  },
+  featuredScroll: {
+    paddingHorizontal: 20,
+    gap: 12,
+  },
+  featuredCard: {
+    width: 245,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
+    backgroundColor: '#FFFFFF',
+    overflow: 'hidden',
+  },
+  featuredCardImageWrapper: {
+    width: '100%',
+    height: 140,
+    position: 'relative',
+    backgroundColor: '#F5F5F5',
+  },
+  featuredCardImage: {
+    width: '100%',
+    height: '100%',
+  },
+  listingTypePill: {
+    position: 'absolute',
+    top: 10,
+    left: 10,
+    backgroundColor: '#000000',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 4,
+  },
+  listingTypeText: {
+    fontFamily: 'Plus Jakarta Sans',
+    fontSize: 9,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: 0.4,
+  },
+  smallFavButton: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    width: 30,
+    height: 30,
+    borderRadius: 9999,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  imageBottomChipsRow: {
+    position: 'absolute',
+    bottom: 8,
+    left: 8,
+    right: 8,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  chipDark: {
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    paddingHorizontal: 8,
+    paddingVertical: 2.5,
+    borderRadius: 4,
+  },
+  chipDarkText: {
+    fontFamily: 'Plus Jakarta Sans',
+    fontSize: 10,
+    fontWeight: '500',
+    color: '#FFFFFF',
+  },
+  chipBordered: {
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    borderWidth: 1,
+    borderColor: '#404040',
+    paddingHorizontal: 6,
+    paddingVertical: 2.5,
+    borderRadius: 4,
+  },
+  chipBorderedText: {
+    fontFamily: 'Plus Jakarta Sans',
+    fontSize: 9,
+    fontWeight: '600',
+    color: '#E5E5E5',
+  },
+  featuredCardBody: {
+    padding: 12,
+  },
+  featuredTitleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  featuredTitle: {
+    fontFamily: 'Plus Jakarta Sans',
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#000000',
+    flex: 1,
+    marginRight: 6,
+  },
+  cardLocationRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.primaryBg,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
+    gap: 3,
+    marginTop: 3,
   },
-  seeAllText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: colors.primary,
-    marginRight: 2,
+  cardLocationText: {
+    fontFamily: 'Plus Jakarta Sans',
+    fontSize: 11,
+    color: '#737373',
   },
-  propertiesGrid: {
+  cardDivider: {
+    height: 1,
+    backgroundColor: '#E5E5E5',
+    marginVertical: 8,
+  },
+  priceRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     justifyContent: 'space-between',
+    alignItems: 'center',
   },
-  propertyCol: {
-    width: '48.5%',
+  cardPriceText: {
+    fontFamily: 'Plus Jakarta Sans',
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#000000',
+  },
+  cardExploreText: {
+    fontFamily: 'Plus Jakarta Sans',
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#000000',
+  },
+
+  // ── Promotional Banner ──
+  promoBanner: {
+    marginHorizontal: 20,
+    marginVertical: 14,
+    borderRadius: 16,
+    backgroundColor: '#09130E',
+    borderWidth: 1,
+    borderColor: '#262626',
+    padding: 18,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.1,
+    shadowRadius: 24,
+    elevation: 4,
+  },
+  promoLeftCol: {
+    flex: 1,
+    marginRight: 12,
+  },
+  promoEyebrow: {
+    fontFamily: 'Plus Jakarta Sans',
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1,
+    color: '#A3A3A3',
+    textTransform: 'uppercase',
+  },
+  promoHeading: {
+    fontFamily: 'Plus Jakarta Sans',
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginTop: 4,
+  },
+  promoDesc: {
+    fontFamily: 'Plus Jakarta Sans',
+    fontSize: 10,
+    color: '#A3A3A3',
+    lineHeight: 14,
+    marginTop: 4,
+  },
+  promoArrowButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 9999,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  // ── Recommended Properties ──
+  recommendedSection: {
+    paddingVertical: 10,
+  },
+  recommendedList: {
+    paddingHorizontal: 20,
+  },
+  recommendedCard: {
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
+    backgroundColor: '#FFFFFF',
+    overflow: 'hidden',
+    marginBottom: 16,
+  },
+  recommendedImageWrapper: {
+    width: '100%',
+    height: 170,
+    position: 'relative',
+    backgroundColor: '#F5F5F5',
+  },
+  recommendedImage: {
+    width: '100%',
+    height: '100%',
+  },
+  recommendedBody: {
+    padding: 14,
+  },
+  recommendedTitle: {
+    fontFamily: 'Plus Jakarta Sans',
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#000000',
+    flex: 1,
+    marginRight: 6,
+  },
+  recPriceText: {
+    fontFamily: 'Plus Jakarta Sans',
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#000000',
   },
 });

@@ -5,12 +5,12 @@ import { useApp } from '../context/AppContext';
 import { colors } from '../theme/colors';
 
 export default function FiltersScreen() {
-  const { pop } = useApp();
-  const [bhk, setBhk] = useState<string[]>([]);
-  const [propertyType, setPropertyType] = useState<string[]>([]);
-  const [furnishing, setFurnishing] = useState<string[]>([]);
-  const [parking, setParking] = useState<string | null>(null);
-  const [verifiedOnly, setVerifiedOnly] = useState(false);
+  const { pop, activeFilters, setFilters } = useApp();
+  const [bhk, setBhk] = useState<string[]>(activeFilters?.bhk || []);
+  const [propertyType, setPropertyType] = useState<string[]>(activeFilters?.propertyType || []);
+  const [furnishing, setFurnishing] = useState<string[]>(activeFilters?.furnishing || []);
+  const [parking, setParking] = useState<string | null>(activeFilters?.parking ?? null);
+  const [verifiedOnly, setVerifiedOnly] = useState(activeFilters?.verifiedOnly ?? false);
 
   const activeCount = bhk.length + propertyType.length + furnishing.length + (parking ? 1 : 0) + (verifiedOnly ? 1 : 0);
 
@@ -114,7 +114,14 @@ export default function FiltersScreen() {
         <TouchableOpacity onPress={pop} style={styles.cancelButton} activeOpacity={0.8}>
           <Text style={styles.cancelButtonText}>Cancel</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={pop} style={styles.applyButton} activeOpacity={0.9}>
+        <TouchableOpacity
+          onPress={() => {
+            setFilters({ bhk, propertyType, furnishing, parking, verifiedOnly });
+            pop();
+          }}
+          style={styles.applyButton}
+          activeOpacity={0.9}
+        >
           <Text style={styles.applyButtonText}>Apply Filters {activeCount > 0 ? `(${activeCount})` : ''}</Text>
         </TouchableOpacity>
       </View>

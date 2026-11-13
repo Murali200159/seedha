@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, Image, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
-import { ChevronLeft, Calendar, Clock, MapPin, CheckCircle2, CalendarPlus, Navigation, Star } from 'lucide-react-native';
+import { ChevronLeft, Calendar, Clock, MapPin, CheckCircle2, CalendarPlus, Navigation, Star, ArrowRight } from 'lucide-react-native';
 import { useApp } from '../context/AppContext';
 import type { Property } from '../types';
 import colors from '../theme/colors';
@@ -30,13 +30,15 @@ const getDates = () => {
 type Step = 'date' | 'time' | 'confirm' | 'success';
 
 export default function BookVisitScreen() {
-  const { currentScreen, pop } = useApp();
+  const { currentScreen, pop, setTab } = useApp();
   const property = currentScreen.params?.property as Property;
   const [step, setStep] = useState<Step>('date');
   const [selectedDate, setSelectedDate] = useState<number | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [rating, setRating] = useState<number>(0);
+  const [ratingSubmitted, setRatingSubmitted] = useState<boolean>(false);
+  const [selectedTag, setSelectedTag] = useState<string>('');
   const dates = getDates();
 
   const handleConfirm = () => {
@@ -46,7 +48,7 @@ export default function BookVisitScreen() {
 
   if (step === 'success') {
     return (
-      <View style={styles.successContainer}>
+      <ScrollView contentContainerStyle={styles.successContainer} showsVerticalScrollIndicator={false}>
         <View style={styles.successBadgeCircle}>
           <CheckCircle2 size={40} color={colors.secondary} />
         </View>
@@ -78,37 +80,72 @@ export default function BookVisitScreen() {
           </View>
         </View>
 
-        {/* Diagram 1: Optional Rating outcome after Book Visiting */}
+        {/* Optional Rating Component */}
         <View style={styles.ratingCard}>
           <Text style={styles.ratingTitle}>Rate Your Experience (Optional)</Text>
-          <Text style={styles.ratingSubtitle}>How easy was it to schedule your site visit?</Text>
-          <View style={styles.ratingStarsRow}>
-            {[1, 2, 3, 4, 5].map((star) => (
+          <Text style={styles.ratingSub}>How was the scheduling and property selection flow?</Text>
+
+          {/* Star selector */}
+          <View style={styles.starsRow}>
+            {[1, 2, 3, 4, 5].map(star => (
               <TouchableOpacity
                 key={star}
                 onPress={() => setRating(star)}
-                style={styles.starTouch}
                 activeOpacity={0.7}
+                style={styles.starTouch}
               >
                 <Star
                   size={26}
                   fill={star <= rating ? colors.warning : 'transparent'}
-                  color={star <= rating ? colors.warning : colors.textMuted}
+                  color={star <= rating ? colors.warning : colors.border}
+                  strokeWidth={1.8}
                 />
               </TouchableOpacity>
             ))}
           </View>
-          {rating > 0 && (
-            <Text style={styles.ratingFeedbackText}>
-              Thank you for rating {rating} / 5! Your feedback helps us improve.
-            </Text>
+
+          {/* Quick tags */}
+          <View style={styles.tagsRow}>
+            {['Smooth Booking', 'Great Location', 'Clear Details', 'Quick Process'].map(tag => (
+              <TouchableOpacity
+                key={tag}
+                onPress={() => setSelectedTag(tag === selectedTag ? '' : tag)}
+                style={[styles.rateTag, selectedTag === tag && styles.rateTagActive]}
+                activeOpacity={0.8}
+              >
+                <Text style={[styles.rateTagText, selectedTag === tag && styles.rateTagTextActive]}>
+                  {tag}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {ratingSubmitted ? (
+            <View style={styles.ratingThankYou}>
+              <CheckCircle2 size={16} color={colors.secondary} />
+              <Text style={styles.ratingThankYouText}>Thank you for your rating!</Text>
+            </View>
+          ) : (
+            <TouchableOpacity
+              onPress={() => setRatingSubmitted(true)}
+              disabled={rating === 0}
+              style={[styles.submitRatingBtn, rating === 0 && { opacity: 0.5 }]}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.submitRatingBtnText}>Submit Rating</Text>
+            </TouchableOpacity>
           )}
         </View>
 
-        <TouchableOpacity onPress={pop} style={styles.backButton} activeOpacity={0.8}>
-          <Text style={styles.backButtonText}>Back to Property</Text>
-        </TouchableOpacity>
-      </View>
+        <View style={styles.actionRow}>
+          <TouchableOpacity onPress={() => setTab('home')} style={styles.backHomeBtn} activeOpacity={0.85}>
+            <Text style={styles.backHomeBtnText}>Back to Home</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={pop} style={styles.backPropertyBtn} activeOpacity={0.8}>
+            <Text style={styles.backPropertyBtnText}>View Property</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
     );
   }
 
@@ -440,51 +477,122 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  backButton: {
-    marginTop: 20,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 14,
-    backgroundColor: colors.primary,
-  },
-  backButtonText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: colors.textWhite,
-  },
   ratingCard: {
     width: '100%',
     backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 16,
     marginTop: 16,
-    alignItems: 'center',
     borderWidth: 1,
     borderColor: colors.borderLight,
+    alignItems: 'center',
   },
   ratingTitle: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '700',
     color: colors.primary,
     marginBottom: 4,
   },
-  ratingSubtitle: {
+  ratingSub: {
     fontSize: 12,
     color: colors.textSecondary,
+    textAlign: 'center',
     marginBottom: 12,
   },
-  ratingStarsRow: {
+  starsRow: {
     flexDirection: 'row',
     gap: 8,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   starTouch: {
     padding: 4,
   },
-  ratingFeedbackText: {
-    fontSize: 12,
-    fontWeight: '600',
+  tagsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 6,
+    marginBottom: 14,
+  },
+  rateTag: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 14,
+    backgroundColor: colors.surfaceSoft,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  rateTagActive: {
+    backgroundColor: colors.primaryBg,
+    borderColor: colors.primary,
+  },
+  rateTagText: {
+    fontSize: 11,
+    color: colors.textSecondary,
+    fontWeight: '500',
+  },
+  rateTagTextActive: {
     color: colors.primary,
-    marginTop: 4,
+    fontWeight: '700',
+  },
+  submitRatingBtn: {
+    backgroundColor: colors.primary,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 12,
+  },
+  submitRatingBtnText: {
+    color: colors.textWhite,
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  ratingThankYou: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: colors.secondaryBg,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 10,
+  },
+  ratingThankYouText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.secondary,
+  },
+  actionRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 20,
+    marginBottom: 30,
+    width: '100%',
+  },
+  backHomeBtn: {
+    flex: 1,
+    height: 48,
+    borderRadius: 14,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  backHomeBtnText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.textWhite,
+  },
+  backPropertyBtn: {
+    flex: 1,
+    height: 48,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  backPropertyBtnText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.textSecondary,
   },
 });

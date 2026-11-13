@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, ScrollView, TextInput, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
 import { ChevronLeft, Home, Key, Building2, ChevronRight, Camera, Plus, CheckCircle2, Upload } from 'lucide-react-native';
 import { useApp } from '../context/AppContext';
+import type { AdminCategory } from '../types';
 import { colors } from '../theme/colors';
 
 type PostMode = 'sheet' | 'sell' | 'rent' | 'commercial';
@@ -18,7 +19,7 @@ const postTypes = [
 const amenityOptions = ['Lift', 'Security', 'Parking', 'Gym', 'Swimming Pool', 'Club House', 'Power Backup', 'CCTV', 'Garden', 'Intercom'];
 
 export default function PostPropertyScreen() {
-  const { pop } = useApp();
+  const { pop, addAdminRequest, user } = useApp();
   const [mode, setMode] = useState<PostMode>('sheet');
   const [step, setStep] = useState<Step>(1);
   const [form, setForm] = useState({
@@ -30,6 +31,33 @@ export default function PostPropertyScreen() {
 
   const handleSubmit = () => {
     setLoading(true);
+
+    const category: AdminCategory = mode === 'sell' ? 'flat_building' : mode === 'rent' ? 'rent' : 'commercial';
+    const computedTitle = form.title || `${form.bhk ? form.bhk + ' BHK ' : ''}${form.type || 'Property'} in ${form.locality || 'Hyderabad'}`;
+    const computedLocation = `${form.locality ? form.locality + ', ' : ''}${form.city || 'Hyderabad'}`;
+    const computedAmount = form.price ? `₹${form.price}` : (mode === 'rent' ? '₹35,000/mo' : '₹95 Lakhs');
+
+    if (addAdminRequest) {
+      addAdminRequest({
+        category,
+        title: computedTitle,
+        userName: user?.name || 'Verified Owner',
+        userPhone: user?.phone || '+91 98765 43210',
+        userEmail: user?.email || 'owner@seedhaproperties.com',
+        location: computedLocation,
+        amount: computedAmount,
+        details: {
+          propertyType: form.type || 'Apartment',
+          bhk: form.bhk || '2 BHK',
+          carpetArea: form.area ? `${form.area} sq.ft` : '1,350 sq.ft',
+          society: form.society || 'Green Heights',
+          deposit: form.deposit,
+          maintenance: form.maintenance,
+          amenities: form.amenities,
+        },
+      });
+    }
+
     setTimeout(() => { setLoading(false); setSubmitted(true); }, 1500);
   };
 
