@@ -10,6 +10,7 @@ import {
   SafeAreaView,
   Platform,
   Modal,
+  Image,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import Svg, { Defs, LinearGradient, Stop, Rect } from 'react-native-svg';
@@ -31,15 +32,47 @@ import {
   ShieldCheck,
   LocateFixed,
   MapPin,
+  ImagePlus,
 } from 'lucide-react-native';
 import { useApp } from '../context/AppContext';
 import type { AdminCategory } from '../types';
 import { colors } from '../theme/colors';
 
 type PostMode = 'sheet' | 'sell' | 'rent' | 'commercial' | 'flatmate' | 'pg';
-type Step = 1 | 2 | 3 | 4 | 5 | 6 | 7;
+type Step = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
 
-const steps = ['Basics', 'Location', 'Pricing', 'Amenities', 'Photos', 'Documents', 'Review'];
+const sellSteps = ['Basics', 'Location', 'Pricing', 'Amenities', 'Photos', 'Owner', 'Preview'];
+const rentSteps = ['Basics', 'Location', 'Pricing', 'Amenities', 'Photos', 'Tenant Prefs', 'Owner', 'Preview'];
+const commercialSteps = ['Purpose', 'Basics', 'Location', 'Pricing', 'Amenities', 'Photos', 'Owner', 'Preview'];
+const flatmateSteps = ['Basics', 'Location', 'Pricing', 'Amenities', 'Photos', 'Flatmate', 'Preferences', 'Preview'];
+const pgSteps = [
+  'Basics',
+  'Rooms',
+  'Location',
+  'Pricing',
+  'Food & Rules',
+  'Amenities',
+  'Photos',
+  'House Rules',
+  'Owner',
+  'Preview',
+];
+
+const getStepsForMode = (m: PostMode): string[] => {
+  if (m === 'rent') {
+    return rentSteps;
+  }
+  if (m === 'commercial') {
+    return commercialSteps;
+  }
+  if (m === 'flatmate') {
+    return flatmateSteps;
+  }
+  if (m === 'pg') {
+    return pgSteps;
+  }
+  return sellSteps;
+};
 
 const postTypes = [
   {
@@ -95,6 +128,27 @@ const propertyTypeOptions = [
   'Commercial Office',
 ];
 
+const commercialPropertyTypeOptions = [
+  'Office Space',
+  'Retail / Showroom',
+  'Shop',
+  'Warehouse / Godown',
+  'Industrial Building',
+  'Commercial Land / Plot',
+  'Co-working Space',
+  'Commercial Building',
+];
+
+const washroomOptions = ['1', '2', '3', '4+', 'Shared', 'None'];
+const pantryOptions = ['Private', 'Shared', 'Cafeteria', 'None'];
+const ageGroupOptions = [
+  '18 - 25 years',
+  '20 - 30 years',
+  '25 - 35 years',
+  '30 - 45 years',
+  'Any age group',
+];
+
 const parkingOptions = [
   'Covered',
   'Open',
@@ -133,16 +187,51 @@ const conditionOptions = [
 const amenityOptions = [
   'Lift',
   'Security',
+  'CCTV',
+  'Power Backup',
   'Parking',
   'Gym',
   'Swimming Pool',
   'Club House',
-  'Power Backup',
-  'CCTV',
   'Garden',
+  'Wi-Fi',
   'Intercom',
-  'WiFi',
-  'Gas Pipeline',
+  'Fire Safety',
+];
+
+const pgAccommodationOptions = [
+  'Boys PG',
+  'Girls PG',
+  'Co-living PG',
+  'Boys Hostel',
+  'Girls Hostel',
+  'Co-ed Hostel',
+];
+
+const pgOccupancyOptions = [
+  { id: 'Single Sharing', title: 'Single Sharing', sub: '1 bed', beds: 1 },
+  { id: 'Double Sharing', title: 'Double Sharing', sub: '2 beds', beds: 2 },
+  { id: 'Triple Sharing', title: 'Triple Sharing', sub: '3 beds', beds: 3 },
+  { id: 'Four Sharing', title: 'Four Sharing', sub: '4 beds', beds: 4 },
+];
+
+const pgAcOptions = ['AC', 'Non-AC', 'Both'];
+
+const pgFurnishingOptions = [
+  'Fully Furnished',
+  'Semi-Furnished',
+  'Unfurnished',
+];
+
+const pgRoomAmenityOptions = [
+  'Cupboard',
+  'TV',
+  'Bedding',
+  'Geyser',
+  'AC',
+  'Attached Bathroom',
+  'Study Table',
+  'Fan',
 ];
 
 export default function PostPropertyScreen() {
@@ -152,6 +241,26 @@ export default function PostPropertyScreen() {
 
   // Form State
   const [form, setForm] = useState({
+    // PG / Hostel Specific (Step 1 & 2)
+    pgAccommodationType: '',
+    pgHostelName: '',
+    pgOccupancyTypes: [] as string[],
+    pgAcType: 'Non-AC',
+    pgActiveRoomTab: 'Single',
+    pgNumberOfBeds: '',
+    pgBedsAvailable: '',
+    pgRoomSize: '',
+    pgAttachedBathroom: false,
+    pgBalcony: false,
+    pgFurnishing: '',
+    pgRoomAmenities: [] as string[],
+
+    // Commercial Specific (Step 1 & 2)
+    commercialPurpose: 'sell' as 'sell' | 'rent',
+    propertySubtype: '',
+    washrooms: '',
+    pantry: '',
+
     // Step 1 - Basics
     propertyType: '',
     title: '',
@@ -183,22 +292,99 @@ export default function PostPropertyScreen() {
 
     // Step 3 - Pricing
     price: '',
+    priceNegotiable: true,
+    availabilityDate: '',
     deposit: '',
     maintenance: '',
+    maintenanceMode: 'Separate',
 
     // Step 4 - Amenities
     amenities: [] as string[],
 
     // Step 5 - Photos
-    photosCount: 2,
+    photos: [] as string[],
+    photosCount: 0,
 
-    // Step 6 - Documents
+    // Step 6 (Rent) - Tenant Preferences
+    preferredTenant: [] as string[],
+    genderPreference: '',
+    petsAllowed: false,
+    smokingAllowed: false,
+    foodPreference: '',
+
+    // Step 6 (Flatmate) - Profile
+    flatmateName: '',
+    flatmateMobile: '',
+    flatmateEmail: '',
+    flatmateProfession: '',
+    flatmateGender: '',
+
+    // Step 7 (Flatmate) - Preferences
+    flatmatePreferredGender: '',
+    flatmateAgeGroup: '',
+    flatmateOccupation: [] as string[],
+    flatmateFoodPref: '',
+    flatmateSmoking: false,
+    flatmateDrinking: false,
+    flatmatePets: false,
+
+    // Owner & Declaration
+    ownerName: '',
+    ownerMobile: '',
+    ownerEmail: '',
+    postingAs: 'Owner',
+    propertyAcquired: 'Purchased',
+    loanOnProperty: 'No loan',
+    propertyTaxPaid: 'Yes',
+    pendingDues: 'None',
+    courtCase: 'None',
     ownership: 'Freehold',
     reraId: '',
   });
 
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // Amenities State (Step 4)
+  const [amenitiesList, setAmenitiesList] = useState<string[]>(amenityOptions);
+  const [customAmenity, setCustomAmenity] = useState('');
+
+  const handleAddAmenity = () => {
+    const trimmed = customAmenity.trim();
+    if (!trimmed) return;
+    if (!amenitiesList.includes(trimmed)) {
+      setAmenitiesList(prev => [...prev, trimmed]);
+    }
+    if (!form.amenities.includes(trimmed)) {
+      setForm(f => ({ ...f, amenities: [...f.amenities, trimmed] }));
+    }
+    setCustomAmenity('');
+  };
+
+  // Photos State & Handlers (Step 5)
+  const samplePropertyImages = [
+    'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=600&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=600&auto=format&fit=crop&q=80',
+  ];
+
+  const handleAddPhoto = () => {
+    const nextImg = samplePropertyImages[form.photos.length % samplePropertyImages.length];
+    setForm(f => ({
+      ...f,
+      photos: [...f.photos, nextImg],
+      photosCount: f.photos.length + 1,
+    }));
+  };
+
+  const handleRemovePhoto = (index: number) => {
+    setForm(f => ({
+      ...f,
+      photos: f.photos.filter((_, i) => i !== index),
+      photosCount: Math.max(0, f.photos.length - 1),
+    }));
+  };
 
   // Picker modal state
   const [pickerModal, setPickerModal] = useState<{
@@ -260,9 +446,9 @@ export default function PostPropertyScreen() {
       addAdminRequest({
         category,
         title: computedTitle,
-        userName: user?.name || 'Verified Owner',
-        userPhone: user?.phone || '+91 98765 43210',
-        userEmail: user?.email || 'owner@seedhaproperties.com',
+        userName: form.ownerName || user?.name || 'Verified Owner',
+        userPhone: form.ownerMobile || user?.phone || '+91 98765 43210',
+        userEmail: form.ownerEmail || user?.email || 'owner@seedhaproperties.com',
         location: computedLocation,
         amount: computedAmount,
         details: {
@@ -285,6 +471,50 @@ export default function PostPropertyScreen() {
           availableDays: form.availableDays,
           availableFrom: form.availableFrom,
           availableUntil: form.availableUntil,
+          priceNegotiable: form.priceNegotiable,
+          availabilityDate: form.availabilityDate,
+          ownerName: form.ownerName,
+          ownerMobile: form.ownerMobile,
+          ownerEmail: form.ownerEmail,
+          postingAs: form.postingAs,
+          propertyAcquired: form.propertyAcquired,
+          loanOnProperty: form.loanOnProperty,
+          propertyTaxPaid: form.propertyTaxPaid,
+          pendingDues: form.pendingDues,
+          courtCase: form.courtCase,
+          preferredTenant: form.preferredTenant,
+          genderPreference: form.genderPreference,
+          petsAllowed: form.petsAllowed,
+          smokingAllowed: form.smokingAllowed,
+          foodPreference: form.foodPreference,
+          commercialPurpose: form.commercialPurpose,
+          propertySubtype: form.propertySubtype,
+          washrooms: form.washrooms,
+          pantry: form.pantry,
+          flatmateName: form.flatmateName,
+          flatmateMobile: form.flatmateMobile,
+          flatmateEmail: form.flatmateEmail,
+          flatmateProfession: form.flatmateProfession,
+          flatmateGender: form.flatmateGender,
+          flatmatePreferredGender: form.flatmatePreferredGender,
+          flatmateAgeGroup: form.flatmateAgeGroup,
+          flatmateOccupation: form.flatmateOccupation,
+          flatmateFoodPref: form.flatmateFoodPref,
+          flatmateSmoking: form.flatmateSmoking,
+          flatmateDrinking: form.flatmateDrinking,
+          flatmatePets: form.flatmatePets,
+          pgAccommodationType: form.pgAccommodationType,
+          pgHostelName: form.pgHostelName,
+          pgOccupancyTypes: form.pgOccupancyTypes,
+          pgAcType: form.pgAcType,
+          pgActiveRoomTab: form.pgActiveRoomTab,
+          pgNumberOfBeds: form.pgNumberOfBeds,
+          pgBedsAvailable: form.pgBedsAvailable,
+          pgRoomSize: form.pgRoomSize,
+          pgAttachedBathroom: form.pgAttachedBathroom,
+          pgBalcony: form.pgBalcony,
+          pgFurnishing: form.pgFurnishing,
+          pgRoomAmenities: form.pgRoomAmenities,
         },
       });
     }
@@ -297,19 +527,75 @@ export default function PostPropertyScreen() {
 
   if (submitted) {
     return (
-      <View style={styles.successContainer}>
-        <View style={styles.successBadgeCircle}>
-          <CircleCheck size={44} color="#047857" />
+      <SafeAreaView style={styles.safeContainer}>
+        <StatusBar style="dark" />
+        <View style={styles.submittedContainer}>
+          <View style={styles.submittedContent}>
+            {/* Top Success Badge */}
+            <View style={styles.submittedSuccessCircle}>
+              <CircleCheck size={40} color="#10B981" strokeWidth={2.4} />
+            </View>
+
+            {/* Title */}
+            <Text style={styles.submittedTitle}>Property Submitted</Text>
+
+            {/* Subtitle */}
+            <Text style={styles.submittedSubtitle}>
+              Your listing is under review. Seedha Properties will verify the details and activate it within 24–48 hours.
+            </Text>
+
+            {/* Status Steps Card */}
+            <View style={styles.submittedStatusCard}>
+              {/* Step 1: Listing received */}
+              <View style={styles.statusStepRow}>
+                <View style={styles.statusStepCircleActive}>
+                  <Text style={styles.statusStepNumActive}>1</Text>
+                </View>
+                <View style={styles.statusStepTextCol}>
+                  <Text style={styles.statusStepTitle}>Listing received</Text>
+                  <Text style={styles.statusStepSub}>Completed</Text>
+                </View>
+              </View>
+
+              {/* Step 2: Details and photos reviewed */}
+              <View style={styles.statusStepRow}>
+                <View style={styles.statusStepCirclePending}>
+                  <Text style={styles.statusStepNumPending}>2</Text>
+                </View>
+                <View style={styles.statusStepTextCol}>
+                  <Text style={styles.statusStepTitle}>Details and photos reviewed</Text>
+                  <Text style={styles.statusStepSub}>Pending</Text>
+                </View>
+              </View>
+
+              {/* Step 3: Listing published */}
+              <View style={styles.statusStepRow}>
+                <View style={styles.statusStepCirclePending}>
+                  <Text style={styles.statusStepNumPending}>3</Text>
+                </View>
+                <View style={styles.statusStepTextCol}>
+                  <Text style={styles.statusStepTitle}>Listing published</Text>
+                  <Text style={styles.statusStepSub}>Pending</Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Done Button */}
+            <TouchableOpacity
+              onPress={() => {
+                setSubmitted(false);
+                setMode('sheet');
+                setStep(1);
+                pop();
+              }}
+              style={styles.submittedDoneBtn}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.submittedDoneBtnText}>Done</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-        <Text style={styles.successTitle}>Property Submitted!</Text>
-        <Text style={styles.successSubtitle}>
-          Your listing has been submitted for verification. Our review team will verify and activate your
-          property within 24 hours.
-        </Text>
-        <TouchableOpacity onPress={pop} style={styles.backHomeButton} activeOpacity={0.8}>
-          <Text style={styles.backHomeButtonText}>Back to Home</Text>
-        </TouchableOpacity>
-      </View>
+      </SafeAreaView>
     );
   }
 
@@ -363,6 +649,11 @@ export default function PostPropertyScreen() {
                 onPress={() => {
                   setMode(id as PostMode);
                   setStep(1);
+                  if (id === 'rent') {
+                    setForm(f => ({ ...f, priceNegotiable: false, maintenanceMode: 'Separate' }));
+                  } else if (id === 'sell') {
+                    setForm(f => ({ ...f, priceNegotiable: true }));
+                  }
                 }}
                 style={styles.optionCard}
                 activeOpacity={0.75}
@@ -394,8 +685,10 @@ export default function PostPropertyScreen() {
       ? 'Flatmates'
       : 'PG / Hostel';
 
-  // Step percentage: Step 1 is 14% (1/7), Step 2 is 29%, Step 7 is 100%
-  const stepPercentage = Math.round((step / 7) * 100);
+  const activeSteps = getStepsForMode(mode);
+  const totalSteps = activeSteps.length;
+  // Step percentage: e.g. Sell Step 1: 14% (1/7), Rent Step 1: 13% (1/8)
+  const stepPercentage = Math.round((step / totalSteps) * 100);
 
   return (
     <SafeAreaView style={styles.safeContainer}>
@@ -411,17 +704,25 @@ export default function PostPropertyScreen() {
             <ChevronLeft size={22} color="#111827" strokeWidth={2.4} />
           </TouchableOpacity>
           <View style={styles.formHeaderTitleCol}>
-            <Text style={styles.formHeaderTitle}>Post to {modeLabel}</Text>
+            <Text style={styles.formHeaderTitle}>
+              {mode === 'pg'
+                ? 'Post PG / Hostel'
+                : mode === 'flatmate'
+                ? 'Post for Flatmates'
+                : mode === 'commercial'
+                ? 'Post Commercial'
+                : `Post to ${modeLabel}`}
+            </Text>
             <Text style={styles.formHeaderSub}>
-              Step {step} of 7 · {steps[step - 1]}
+              Step {step} of {totalSteps} · {activeSteps[step - 1]}
             </Text>
           </View>
           <Text style={styles.percentageText}>{stepPercentage}%</Text>
         </View>
 
-        {/* 7-Segment Progress Bar */}
+        {/* Dynamic Segment Progress Bar */}
         <View style={styles.segmentBarRow}>
-          {[1, 2, 3, 4, 5, 6, 7].map(seg => (
+          {Array.from({ length: totalSteps }, (_, i) => i + 1).map(seg => (
             <View
               key={seg}
               style={[
@@ -439,18 +740,262 @@ export default function PostPropertyScreen() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {/* STEP 1: BASICS */}
-          {step === 1 && (
+          {/* STEP 1 (COMMERCIAL): PURPOSE */}
+          {mode === 'commercial' && step === 1 && (
             <View style={styles.stepFormContent}>
-              {/* 1. Property Type */}
+              <Text style={styles.purposeHeading}>What do you want to do?</Text>
+
+              <View style={styles.purposeCardsWrap}>
+                {/* 1. Sell Commercial Property */}
+                <TouchableOpacity
+                  style={[
+                    styles.purposeCard,
+                    form.commercialPurpose === 'sell' && styles.purposeCardSelected,
+                  ]}
+                  activeOpacity={0.8}
+                  onPress={() => setForm(f => ({ ...f, commercialPurpose: 'sell' }))}
+                >
+                  {form.commercialPurpose === 'sell' ? (
+                    <View style={styles.purposeCheckCircle}>
+                      <Check size={13} color="#FFFFFF" strokeWidth={3} />
+                    </View>
+                  ) : (
+                    <View style={styles.purposeUncheckCircle} />
+                  )}
+                  <View style={styles.purposeTextCol}>
+                    <Text style={styles.purposeTitle}>Sell Commercial Property</Text>
+                    <Text style={styles.purposeSub}>Find buyers for your commercial asset</Text>
+                  </View>
+                </TouchableOpacity>
+
+                {/* 2. Rent Commercial Property */}
+                <TouchableOpacity
+                  style={[
+                    styles.purposeCard,
+                    form.commercialPurpose === 'rent' && styles.purposeCardSelected,
+                  ]}
+                  activeOpacity={0.8}
+                  onPress={() => setForm(f => ({ ...f, commercialPurpose: 'rent' }))}
+                >
+                  {form.commercialPurpose === 'rent' ? (
+                    <View style={styles.purposeCheckCircle}>
+                      <Check size={13} color="#FFFFFF" strokeWidth={3} />
+                    </View>
+                  ) : (
+                    <View style={styles.purposeUncheckCircle} />
+                  )}
+                  <View style={styles.purposeTextCol}>
+                    <Text style={styles.purposeTitle}>Rent Commercial Property</Text>
+                    <Text style={styles.purposeSub}>Find a business tenant</Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
+          {/* STEP 1 (PG / HOSTEL): BASICS */}
+          {mode === 'pg' && step === 1 && (
+            <View style={styles.stepFormContent}>
+              {/* 1. Accommodation type */}
               <View style={styles.fieldGroup}>
-                <Text style={styles.fieldLabel}>Property Type</Text>
+                <Text style={styles.fieldLabel}>Accommodation type</Text>
+                <View style={styles.optionPillsRow}>
+                  {pgAccommodationOptions.map(opt => {
+                    const isSelected = form.pgAccommodationType === opt;
+                    return (
+                      <TouchableOpacity
+                        key={opt}
+                        onPress={() => setForm(f => ({ ...f, pgAccommodationType: opt }))}
+                        style={[styles.optionPill, isSelected && styles.optionPillSelected]}
+                        activeOpacity={0.8}
+                      >
+                        <Text
+                          style={[
+                            styles.optionPillText,
+                            isSelected && styles.optionPillTextSelected,
+                          ]}
+                        >
+                          {opt}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+
+              {/* 2. PG / Hostel name */}
+              <View style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>PG / Hostel name</Text>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder=""
+                  placeholderTextColor="#9CA3AF"
+                  value={form.pgHostelName}
+                  onChangeText={text => setForm(f => ({ ...f, pgHostelName: text }))}
+                />
+              </View>
+
+              {/* 3. Property title */}
+              <View style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>Property title</Text>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="e.g. Safe girls PG near Metro"
+                  placeholderTextColor="#9CA3AF"
+                  value={form.title}
+                  onChangeText={text => setForm(f => ({ ...f, title: text }))}
+                />
+              </View>
+
+              {/* 4. Description */}
+              <View style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>Description</Text>
+                <TextInput
+                  style={styles.textAreaInput}
+                  placeholder=""
+                  placeholderTextColor="#9CA3AF"
+                  multiline
+                  numberOfLines={4}
+                  textAlignVertical="top"
+                  value={form.description}
+                  onChangeText={text => setForm(f => ({ ...f, description: text }))}
+                />
+              </View>
+
+              {/* 5. Total floors */}
+              <View style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>Total floors</Text>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder=""
+                  placeholderTextColor="#9CA3AF"
+                  keyboardType="numeric"
+                  value={form.totalFloors}
+                  onChangeText={text => setForm(f => ({ ...f, totalFloors: text }))}
+                />
+              </View>
+
+              {/* 6. Occupancy types available */}
+              <View style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>Occupancy types available</Text>
+                <Text style={styles.fieldSubLabel}>
+                  Select every room type available in your PG or hostel.
+                </Text>
+                <View style={styles.occupancyGrid}>
+                  {pgOccupancyOptions.map(item => {
+                    const isSelected = form.pgOccupancyTypes.includes(item.id);
+                    return (
+                      <TouchableOpacity
+                        key={item.id}
+                        style={[styles.occupancyCard, isSelected && styles.occupancyCardSelected]}
+                        activeOpacity={0.8}
+                        onPress={() => {
+                          setForm(f => ({
+                            ...f,
+                            pgOccupancyTypes: f.pgOccupancyTypes.includes(item.id)
+                              ? f.pgOccupancyTypes.filter(x => x !== item.id)
+                              : [...f.pgOccupancyTypes, item.id],
+                          }));
+                        }}
+                      >
+                        <View style={styles.bedCapsulesRow}>
+                          {Array.from({ length: item.beds }).map((_, bIdx) => (
+                            <View
+                              key={bIdx}
+                              style={[styles.bedCapsule, isSelected && styles.bedCapsuleSelected]}
+                            />
+                          ))}
+                        </View>
+                        <Text
+                          style={[
+                            styles.occupancyTitle,
+                            isSelected && styles.occupancyTitleSelected,
+                          ]}
+                        >
+                          {item.title}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.occupancySub,
+                            isSelected && styles.occupancySubSelected,
+                          ]}
+                        >
+                          {item.sub}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+
+              {/* 7. AC / Non-AC */}
+              <View style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>AC / Non-AC</Text>
+                <View style={styles.optionPillsRow}>
+                  {pgAcOptions.map(opt => {
+                    const isSelected = form.pgAcType === opt;
+                    return (
+                      <TouchableOpacity
+                        key={opt}
+                        onPress={() => setForm(f => ({ ...f, pgAcType: opt }))}
+                        style={[styles.optionPill, isSelected && styles.optionPillSelected]}
+                        activeOpacity={0.8}
+                      >
+                        <Text
+                          style={[
+                            styles.optionPillText,
+                            isSelected && styles.optionPillTextSelected,
+                          ]}
+                        >
+                          {opt}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+
+              {/* 8. Current property condition */}
+              <View style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>Current property condition</Text>
                 <TouchableOpacity
                   style={styles.selectInput}
                   activeOpacity={0.7}
                   onPress={() =>
-                    openPicker('Property Type', propertyTypeOptions, form.propertyType, val =>
-                      setForm(f => ({ ...f, propertyType: val }))
+                    openPicker(
+                      'Current property condition',
+                      conditionOptions,
+                      form.condition,
+                      val => setForm(f => ({ ...f, condition: val }))
+                    )
+                  }
+                >
+                  <Text style={[styles.selectText, !form.condition && styles.placeholderText]}>
+                    {form.condition || 'Select'}
+                  </Text>
+                  <ChevronDown size={18} color="#6B7280" />
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
+          {/* STEP 1 (SELL/RENT) / STEP 2 (COMMERCIAL): BASICS */}
+          {((mode !== 'commercial' && mode !== 'pg' && step === 1) || (mode === 'commercial' && step === 2)) && (
+            <View style={styles.stepFormContent}>
+              {/* 1. Property Type / Commercial Property Type */}
+              <View style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>
+                  {mode === 'commercial' ? 'Commercial Property Type' : 'Property Type'}
+                </Text>
+                <TouchableOpacity
+                  style={styles.selectInput}
+                  activeOpacity={0.7}
+                  onPress={() =>
+                    openPicker(
+                      mode === 'commercial' ? 'Commercial Property Type' : 'Property Type',
+                      mode === 'commercial' ? commercialPropertyTypeOptions : propertyTypeOptions,
+                      form.propertyType,
+                      val => setForm(f => ({ ...f, propertyType: val }))
                     )
                   }
                 >
@@ -460,6 +1005,22 @@ export default function PostPropertyScreen() {
                   <ChevronDown size={18} color="#6B7280" />
                 </TouchableOpacity>
               </View>
+
+              {/* 1b. Property subtype (optional) - Commercial Only */}
+              {mode === 'commercial' && (
+                <View style={styles.fieldGroup}>
+                  <Text style={styles.fieldLabel}>
+                    Property subtype <Text style={{ color: '#9CA3AF', fontWeight: '400' }}>(optional)</Text>
+                  </Text>
+                  <TextInput
+                    style={styles.textInput}
+                    placeholder="e.g. IT office, high-street retail"
+                    placeholderTextColor="#9CA3AF"
+                    value={form.propertySubtype}
+                    onChangeText={text => setForm(f => ({ ...f, propertySubtype: text }))}
+                  />
+                </View>
+              )}
 
               {/* 2. Property title */}
               <View style={styles.fieldGroup}>
@@ -488,53 +1049,98 @@ export default function PostPropertyScreen() {
                 />
               </View>
 
-              {/* 4. BHK */}
-              <View style={styles.fieldGroup}>
-                <Text style={styles.fieldLabel}>BHK</Text>
-                <View style={styles.bhkRow}>
-                  {['1', '2', '3', '4', '5+'].map(b => {
-                    const isSelected = form.bhk === b;
-                    return (
-                      <TouchableOpacity
-                        key={b}
-                        onPress={() => setForm(f => ({ ...f, bhk: isSelected ? '' : b }))}
-                        style={[styles.bhkCircle, isSelected && styles.bhkCircleSelected]}
-                        activeOpacity={0.8}
-                      >
-                        <Text style={[styles.bhkText, isSelected && styles.bhkTextSelected]}>
-                          {b}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
-              </View>
+              {/* Residential Only: BHK + Bathrooms/Balconies */}
+              {mode !== 'commercial' && (
+                <>
+                  {/* BHK */}
+                  <View style={styles.fieldGroup}>
+                    <Text style={styles.fieldLabel}>BHK</Text>
+                    <View style={styles.bhkRow}>
+                      {['1', '2', '3', '4', '5+'].map(b => {
+                        const isSelected = form.bhk === b;
+                        return (
+                          <TouchableOpacity
+                            key={b}
+                            onPress={() => setForm(f => ({ ...f, bhk: isSelected ? '' : b }))}
+                            style={[styles.bhkCircle, isSelected && styles.bhkCircleSelected]}
+                            activeOpacity={0.8}
+                          >
+                            <Text style={[styles.bhkText, isSelected && styles.bhkTextSelected]}>
+                              {b}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                  </View>
 
-              {/* 5. Bathrooms & Balconies (2 columns) */}
-              <View style={styles.twoColRow}>
-                <View style={styles.colHalf}>
-                  <Text style={styles.fieldLabel}>Bathrooms</Text>
-                  <TextInput
-                    style={styles.textInput}
-                    placeholder=""
-                    placeholderTextColor="#9CA3AF"
-                    keyboardType="numeric"
-                    value={form.bathrooms}
-                    onChangeText={text => setForm(f => ({ ...f, bathrooms: text }))}
-                  />
+                  {/* Bathrooms & Balconies */}
+                  <View style={styles.twoColRow}>
+                    <View style={styles.colHalf}>
+                      <Text style={styles.fieldLabel}>Bathrooms</Text>
+                      <TextInput
+                        style={styles.textInput}
+                        placeholder=""
+                        placeholderTextColor="#9CA3AF"
+                        keyboardType="numeric"
+                        value={form.bathrooms}
+                        onChangeText={text => setForm(f => ({ ...f, bathrooms: text }))}
+                      />
+                    </View>
+                    <View style={styles.colHalf}>
+                      <Text style={styles.fieldLabel}>Balconies</Text>
+                      <TextInput
+                        style={styles.textInput}
+                        placeholder=""
+                        placeholderTextColor="#9CA3AF"
+                        keyboardType="numeric"
+                        value={form.balconies}
+                        onChangeText={text => setForm(f => ({ ...f, balconies: text }))}
+                      />
+                    </View>
+                  </View>
+                </>
+              )}
+
+              {/* Commercial Only: Washrooms & Pantry/Cafeteria */}
+              {mode === 'commercial' && (
+                <View style={styles.twoColRow}>
+                  <View style={styles.colHalf}>
+                    <Text style={styles.fieldLabel}>Washrooms</Text>
+                    <TouchableOpacity
+                      style={styles.selectInput}
+                      activeOpacity={0.7}
+                      onPress={() =>
+                        openPicker('Washrooms', washroomOptions, form.washrooms, val =>
+                          setForm(f => ({ ...f, washrooms: val }))
+                        )
+                      }
+                    >
+                      <Text style={[styles.selectText, !form.washrooms && styles.placeholderText]}>
+                        {form.washrooms || 'Select'}
+                      </Text>
+                      <ChevronDown size={18} color="#6B7280" />
+                    </TouchableOpacity>
+                  </View>
+                  <View style={styles.colHalf}>
+                    <Text style={styles.fieldLabel}>Pantry / Cafeteria</Text>
+                    <TouchableOpacity
+                      style={styles.selectInput}
+                      activeOpacity={0.7}
+                      onPress={() =>
+                        openPicker('Pantry / Cafeteria', pantryOptions, form.pantry, val =>
+                          setForm(f => ({ ...f, pantry: val }))
+                        )
+                      }
+                    >
+                      <Text style={[styles.selectText, !form.pantry && styles.placeholderText]}>
+                        {form.pantry || 'Select'}
+                      </Text>
+                      <ChevronDown size={18} color="#6B7280" />
+                    </TouchableOpacity>
+                  </View>
                 </View>
-                <View style={styles.colHalf}>
-                  <Text style={styles.fieldLabel}>Balconies</Text>
-                  <TextInput
-                    style={styles.textInput}
-                    placeholder=""
-                    placeholderTextColor="#9CA3AF"
-                    keyboardType="numeric"
-                    value={form.balconies}
-                    onChangeText={text => setForm(f => ({ ...f, balconies: text }))}
-                  />
-                </View>
-              </View>
+              )}
 
               {/* 6. Furnishing status */}
               <View style={styles.fieldGroup}>
@@ -699,8 +1305,210 @@ export default function PostPropertyScreen() {
             </View>
           )}
 
-          {/* STEP 2: LOCATION */}
-          {step === 2 && (
+          {/* STEP 2 (PG / HOSTEL): ROOMS */}
+          {mode === 'pg' && step === 2 && (
+            <View style={styles.stepFormContent}>
+              {/* Notice banner if no occupancy was selected */}
+              {form.pgOccupancyTypes.length === 0 && (
+                <View style={styles.noticeBanner}>
+                  <Text style={styles.noticeBannerText}>
+                    No occupancy type was selected in Basics, so Single Sharing is shown as a preview. Go back to select the room types you offer.
+                  </Text>
+                </View>
+              )}
+
+              {/* Room Type Tabs */}
+              <View style={styles.roomTabsRow}>
+                {(form.pgOccupancyTypes.length > 0
+                  ? form.pgOccupancyTypes.map(t => t.replace(' Sharing', ''))
+                  : ['Single']
+                ).map(tab => {
+                  const isSelected = form.pgActiveRoomTab === tab;
+                  return (
+                    <TouchableOpacity
+                      key={tab}
+                      onPress={() => setForm(f => ({ ...f, pgActiveRoomTab: tab }))}
+                      style={[styles.roomTabPill, isSelected && styles.roomTabPillActive]}
+                      activeOpacity={0.8}
+                    >
+                      <Text
+                        style={[
+                          styles.roomTabPillText,
+                          isSelected && styles.roomTabPillTextActive,
+                        ]}
+                      >
+                        {tab}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+
+              {/* Room Details Card */}
+              <View style={styles.roomCard}>
+                <Text style={styles.roomCardTitle}>
+                  {form.pgActiveRoomTab.includes('Sharing')
+                    ? form.pgActiveRoomTab
+                    : `${form.pgActiveRoomTab} Sharing`}{' '}
+                  details
+                </Text>
+                <Text style={styles.roomCardSub}>
+                  These details apply only to this occupancy type
+                </Text>
+
+                {/* Number of beds & Beds available */}
+                <View style={styles.twoColRow}>
+                  <View style={styles.colHalf}>
+                    <Text style={styles.roomFieldLabel}>Number of beds</Text>
+                    <TextInput
+                      style={styles.roomTextInput}
+                      placeholder=""
+                      placeholderTextColor="#9CA3AF"
+                      keyboardType="numeric"
+                      value={form.pgNumberOfBeds}
+                      onChangeText={text => setForm(f => ({ ...f, pgNumberOfBeds: text }))}
+                    />
+                  </View>
+                  <View style={styles.colHalf}>
+                    <Text style={styles.roomFieldLabel}>Beds available</Text>
+                    <TextInput
+                      style={styles.roomTextInput}
+                      placeholder=""
+                      placeholderTextColor="#9CA3AF"
+                      keyboardType="numeric"
+                      value={form.pgBedsAvailable}
+                      onChangeText={text => setForm(f => ({ ...f, pgBedsAvailable: text }))}
+                    />
+                  </View>
+                </View>
+
+                {/* Room size (sq.ft.) */}
+                <View style={styles.roomFieldGroup}>
+                  <Text style={styles.roomFieldLabel}>Room size (sq.ft.)</Text>
+                  <TextInput
+                    style={styles.roomTextInput}
+                    placeholder=""
+                    placeholderTextColor="#9CA3AF"
+                    keyboardType="numeric"
+                    value={form.pgRoomSize}
+                    onChangeText={text => setForm(f => ({ ...f, pgRoomSize: text }))}
+                  />
+                </View>
+
+                {/* Attached bathroom */}
+                <View style={styles.roomToggleCard}>
+                  <Text style={styles.roomToggleText}>Attached bathroom</Text>
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={() =>
+                      setForm(f => ({ ...f, pgAttachedBathroom: !f.pgAttachedBathroom }))
+                    }
+                    style={[
+                      styles.toggleSwitchTrack,
+                      form.pgAttachedBathroom
+                        ? styles.toggleSwitchTrackOn
+                        : styles.toggleSwitchTrackOff,
+                    ]}
+                  >
+                    <View
+                      style={[
+                        styles.toggleSwitchThumb,
+                        form.pgAttachedBathroom
+                          ? styles.toggleSwitchThumbOn
+                          : styles.toggleSwitchThumbOff,
+                      ]}
+                    />
+                  </TouchableOpacity>
+                </View>
+
+                {/* Balcony */}
+                <View style={styles.roomToggleCard}>
+                  <Text style={styles.roomToggleText}>Balcony</Text>
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={() => setForm(f => ({ ...f, pgBalcony: !f.pgBalcony }))}
+                    style={[
+                      styles.toggleSwitchTrack,
+                      form.pgBalcony ? styles.toggleSwitchTrackOn : styles.toggleSwitchTrackOff,
+                    ]}
+                  >
+                    <View
+                      style={[
+                        styles.toggleSwitchThumb,
+                        form.pgBalcony ? styles.toggleSwitchThumbOn : styles.toggleSwitchThumbOff,
+                      ]}
+                    />
+                  </TouchableOpacity>
+                </View>
+
+                {/* Furnishing status */}
+                <View style={styles.roomFieldGroup}>
+                  <Text style={styles.roomFieldLabel}>Furnishing status</Text>
+                  <View style={styles.optionPillsRow}>
+                    {pgFurnishingOptions.map(opt => {
+                      const isSelected = form.pgFurnishing === opt;
+                      return (
+                        <TouchableOpacity
+                          key={opt}
+                          onPress={() => setForm(f => ({ ...f, pgFurnishing: opt }))}
+                          style={[styles.optionPill, isSelected && styles.optionPillSelected]}
+                          activeOpacity={0.8}
+                        >
+                          <Text
+                            style={[
+                              styles.optionPillText,
+                              isSelected && styles.optionPillTextSelected,
+                            ]}
+                          >
+                            {opt}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </View>
+
+                {/* Room amenities */}
+                <View style={styles.roomFieldGroup}>
+                  <Text style={styles.roomFieldLabel}>Room amenities</Text>
+                  <View style={styles.optionPillsRow}>
+                    {pgRoomAmenityOptions.map(opt => {
+                      const isSelected = form.pgRoomAmenities.includes(opt);
+                      return (
+                        <TouchableOpacity
+                          key={opt}
+                          onPress={() =>
+                            setForm(f => ({
+                              ...f,
+                              pgRoomAmenities: f.pgRoomAmenities.includes(opt)
+                                ? f.pgRoomAmenities.filter(x => x !== opt)
+                                : [...f.pgRoomAmenities, opt],
+                            }))
+                          }
+                          style={[styles.optionPill, isSelected && styles.optionPillSelected]}
+                          activeOpacity={0.8}
+                        >
+                          <Text
+                            style={[
+                              styles.optionPillText,
+                              isSelected && styles.optionPillTextSelected,
+                            ]}
+                          >
+                            {opt}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </View>
+              </View>
+            </View>
+          )}
+
+          {/* STEP 2 (SELL/RENT) / STEP 3 (COMMERCIAL/PG): LOCATION */}
+          {((mode !== 'commercial' && mode !== 'pg' && step === 2) ||
+            (mode === 'commercial' && step === 3) ||
+            (mode === 'pg' && step === 3)) && (
             <View style={styles.stepFormContent}>
               {/* Use current location button */}
               <TouchableOpacity
@@ -734,7 +1542,7 @@ export default function PostPropertyScreen() {
                   <Text style={styles.fieldLabel}>Locality</Text>
                   <TextInput
                     style={styles.textInput}
-                    placeholder="Area / neighbourhood"
+                    placeholder={mode === 'commercial' ? 'Area' : 'Area / neighbourhood'}
                     placeholderTextColor="#9CA3AF"
                     value={form.locality}
                     onChangeText={text => setForm(f => ({ ...f, locality: text }))}
@@ -796,174 +1604,280 @@ export default function PostPropertyScreen() {
               </View>
 
               {/* Property position card */}
-              <View style={styles.whiteSectionCard}>
-                <Text style={styles.sectionCardTitle}>Property position</Text>
-                <Text style={styles.sectionCardSub}>Tell users how the property is positioned</Text>
-                <Text style={styles.sectionCardLabel}>Position</Text>
-                <View style={styles.positionPillsWrap}>
-                  <View style={styles.positionPillsRow}>
-                    {['Main road property', 'Corner property'].map(pos => {
-                      const isSelected = form.propertyPosition === pos;
-                      return (
-                        <TouchableOpacity
-                          key={pos}
-                          onPress={() => setForm(f => ({ ...f, propertyPosition: pos }))}
-                          style={[styles.optionPill, isSelected && styles.optionPillSelected]}
-                          activeOpacity={0.8}
-                        >
-                          <Text
-                            style={[
-                              styles.optionPillText,
-                              isSelected && styles.optionPillTextSelected,
-                            ]}
+              {mode !== 'pg' && (
+                <View style={styles.whiteSectionCard}>
+                  <Text style={styles.sectionCardTitle}>Property position</Text>
+                  <Text style={styles.sectionCardSub}>Tell users how the property is positioned</Text>
+                  <Text style={styles.sectionCardLabel}>Position</Text>
+                  <View style={styles.positionPillsWrap}>
+                    <View style={styles.positionPillsRow}>
+                      {['Main road property', 'Corner property'].map(pos => {
+                        const isSelected = form.propertyPosition === pos;
+                        return (
+                          <TouchableOpacity
+                            key={pos}
+                            onPress={() => setForm(f => ({ ...f, propertyPosition: pos }))}
+                            style={[styles.optionPill, isSelected && styles.optionPillSelected]}
+                            activeOpacity={0.8}
                           >
-                            {pos}
-                          </Text>
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </View>
-                  <View style={styles.positionPillsRow}>
-                    {['Main road & corner property'].map(pos => {
-                      const isSelected = form.propertyPosition === pos;
-                      return (
-                        <TouchableOpacity
-                          key={pos}
-                          onPress={() => setForm(f => ({ ...f, propertyPosition: pos }))}
-                          style={[styles.optionPill, isSelected && styles.optionPillSelected]}
-                          activeOpacity={0.8}
-                        >
-                          <Text
-                            style={[
-                              styles.optionPillText,
-                              isSelected && styles.optionPillTextSelected,
-                            ]}
+                            <Text
+                              style={[
+                                styles.optionPillText,
+                                isSelected && styles.optionPillTextSelected,
+                              ]}
+                            >
+                              {pos}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                    <View style={styles.positionPillsRow}>
+                      {['Main road & corner property'].map(pos => {
+                        const isSelected = form.propertyPosition === pos;
+                        return (
+                          <TouchableOpacity
+                            key={pos}
+                            onPress={() => setForm(f => ({ ...f, propertyPosition: pos }))}
+                            style={[styles.optionPill, isSelected && styles.optionPillSelected]}
+                            activeOpacity={0.8}
                           >
-                            {pos}
-                          </Text>
-                        </TouchableOpacity>
-                      );
-                    })}
+                            <Text
+                              style={[
+                                styles.optionPillText,
+                                isSelected && styles.optionPillTextSelected,
+                              ]}
+                            >
+                              {pos}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
                   </View>
                 </View>
-              </View>
+              )}
 
               {/* Visit availability card */}
-              <View style={styles.whiteSectionCard}>
-                <Text style={styles.sectionCardTitle}>Visit availability</Text>
-                <Text style={styles.sectionCardSub}>When can interested users visit the property?</Text>
-                <Text style={styles.sectionCardLabel}>Available days</Text>
-                <View style={styles.positionPillsRow}>
-                  {['Everyday', 'Weekends', 'Any day'].map(day => {
-                    const isSelected = form.availableDays === day;
-                    return (
-                      <TouchableOpacity
-                        key={day}
-                        onPress={() => setForm(f => ({ ...f, availableDays: day }))}
-                        style={[styles.optionPill, isSelected && styles.optionPillSelected]}
-                        activeOpacity={0.8}
-                      >
-                        <Text
-                          style={[
-                            styles.optionPillText,
-                            isSelected && styles.optionPillTextSelected,
-                          ]}
+              {mode !== 'pg' && (
+                <View style={styles.whiteSectionCard}>
+                  <Text style={styles.sectionCardTitle}>Visit availability</Text>
+                  <Text style={styles.sectionCardSub}>When can interested users visit the property?</Text>
+                  <Text style={styles.sectionCardLabel}>Available days</Text>
+                  <View style={styles.positionPillsRow}>
+                    {['Everyday', 'Weekends', 'Any day'].map(day => {
+                      const isSelected = form.availableDays === day;
+                      return (
+                        <TouchableOpacity
+                          key={day}
+                          onPress={() => setForm(f => ({ ...f, availableDays: day }))}
+                          style={[styles.optionPill, isSelected && styles.optionPillSelected]}
+                          activeOpacity={0.8}
                         >
-                          {day}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
-
-                {/* Available from & Available until (2 columns) */}
-                <View style={[styles.twoColRow, { marginTop: 16 }]}>
-                  <View style={styles.colHalf}>
-                    <Text style={[styles.fieldLabel, { fontSize: 12, marginBottom: 6 }]}>Available from</Text>
-                    <TextInput
-                      style={styles.textInput}
-                      placeholder=""
-                      placeholderTextColor="#9CA3AF"
-                      value={form.availableFrom}
-                      onChangeText={text => setForm(f => ({ ...f, availableFrom: text }))}
-                    />
+                          <Text
+                            style={[
+                              styles.optionPillText,
+                              isSelected && styles.optionPillTextSelected,
+                            ]}
+                          >
+                            {day}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
                   </View>
-                  <View style={styles.colHalf}>
-                    <Text style={[styles.fieldLabel, { fontSize: 12, marginBottom: 6 }]}>Available until</Text>
-                    <TextInput
-                      style={styles.textInput}
-                      placeholder=""
-                      placeholderTextColor="#9CA3AF"
-                      value={form.availableUntil}
-                      onChangeText={text => setForm(f => ({ ...f, availableUntil: text }))}
-                    />
+
+                  {/* Available from & Available until (2 columns) */}
+                  <View style={[styles.twoColRow, { marginTop: 16 }]}>
+                    <View style={styles.colHalf}>
+                      <Text style={[styles.fieldLabel, { fontSize: 12, marginBottom: 6 }]}>Available from</Text>
+                      <TextInput
+                        style={styles.textInput}
+                        placeholder=""
+                        placeholderTextColor="#9CA3AF"
+                        value={form.availableFrom}
+                        onChangeText={text => setForm(f => ({ ...f, availableFrom: text }))}
+                      />
+                    </View>
+                    <View style={styles.colHalf}>
+                      <Text style={[styles.fieldLabel, { fontSize: 12, marginBottom: 6 }]}>Available until</Text>
+                      <TextInput
+                        style={styles.textInput}
+                        placeholder=""
+                        placeholderTextColor="#9CA3AF"
+                        value={form.availableUntil}
+                        onChangeText={text => setForm(f => ({ ...f, availableUntil: text }))}
+                      />
+                    </View>
                   </View>
-                </View>
-              </View>
-            </View>
-          )}
-
-          {/* STEP 3: PRICING */}
-          {step === 3 && (
-            <View style={styles.stepFormContent}>
-              <View style={styles.fieldGroup}>
-                <Text style={styles.fieldLabel}>
-                  {mode === 'rent' || mode === 'flatmate' || mode === 'pg'
-                    ? 'Expected Monthly Rent (₹)'
-                    : 'Expected Price (₹)'}
-                </Text>
-                <TextInput
-                  style={styles.textInput}
-                  placeholder={
-                    mode === 'pg'
-                      ? '8,500'
-                      : mode === 'flatmate'
-                      ? '12,000'
-                      : mode === 'rent'
-                      ? '35,000'
-                      : '85,00,000'
-                  }
-                  placeholderTextColor="#9CA3AF"
-                  keyboardType="numeric"
-                  value={form.price}
-                  onChangeText={text => setForm(f => ({ ...f, price: text }))}
-                />
-              </View>
-
-              <View style={styles.fieldGroup}>
-                <Text style={styles.fieldLabel}>Monthly Maintenance (₹)</Text>
-                <TextInput
-                  style={styles.textInput}
-                  placeholder="e.g. 3,500"
-                  placeholderTextColor="#9CA3AF"
-                  keyboardType="numeric"
-                  value={form.maintenance}
-                  onChangeText={text => setForm(f => ({ ...f, maintenance: text }))}
-                />
-              </View>
-
-              {(mode === 'rent' || mode === 'flatmate' || mode === 'pg') && (
-                <View style={styles.fieldGroup}>
-                  <Text style={styles.fieldLabel}>Security Deposit (₹)</Text>
-                  <TextInput
-                    style={styles.textInput}
-                    placeholder="e.g. 50,000"
-                    placeholderTextColor="#9CA3AF"
-                    keyboardType="numeric"
-                    value={form.deposit}
-                    onChangeText={text => setForm(f => ({ ...f, deposit: text }))}
-                  />
                 </View>
               )}
             </View>
           )}
 
-          {/* STEP 4: AMENITIES */}
-          {step === 4 && (
+          {/* STEP 3 (SELL/RENT) / STEP 4 (COMMERCIAL/PG): PRICING */}
+          {((mode !== 'commercial' && mode !== 'pg' && step === 3) ||
+            (mode === 'commercial' && step === 4) ||
+            (mode === 'pg' && step === 4)) && (
             <View style={styles.stepFormContent}>
-              <Text style={styles.fieldLabel}>Select Available Amenities</Text>
+              {mode === 'rent' ? (
+                <>
+                  {/* 1. Expected rent (₹/month) */}
+                  <View style={styles.fieldGroup}>
+                    <Text style={styles.fieldLabel}>Expected rent (₹/month)</Text>
+                    <TextInput
+                      style={styles.textInput}
+                      placeholder=""
+                      placeholderTextColor="#9CA3AF"
+                      keyboardType="numeric"
+                      value={form.price}
+                      onChangeText={text => setForm(f => ({ ...f, price: text }))}
+                    />
+                  </View>
+
+                  {/* 2. Expected deposit (₹) */}
+                  <View style={styles.fieldGroup}>
+                    <Text style={styles.fieldLabel}>Expected deposit (₹)</Text>
+                    <TextInput
+                      style={styles.textInput}
+                      placeholder=""
+                      placeholderTextColor="#9CA3AF"
+                      keyboardType="numeric"
+                      value={form.deposit}
+                      onChangeText={text => setForm(f => ({ ...f, deposit: text }))}
+                    />
+                  </View>
+
+                  {/* 3. Monthly maintenance */}
+                  <View style={styles.fieldGroup}>
+                    <Text style={styles.fieldLabel}>Monthly maintenance</Text>
+                    <View style={styles.optionPillsRow}>
+                      {['Included in rent', 'Separate'].map(opt => {
+                        const isSelected = form.maintenanceMode === opt;
+                        return (
+                          <TouchableOpacity
+                            key={opt}
+                            onPress={() => setForm(f => ({ ...f, maintenanceMode: opt }))}
+                            style={[styles.optionPill, isSelected && styles.optionPillSelected]}
+                            activeOpacity={0.8}
+                          >
+                            <Text
+                              style={[
+                                styles.optionPillText,
+                                isSelected && styles.optionPillTextSelected,
+                              ]}
+                            >
+                              {opt}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                  </View>
+
+                  {/* 4. Maintenance cost (₹/month) */}
+                  <View style={styles.fieldGroup}>
+                    <Text style={styles.fieldLabel}>Maintenance cost (₹/month)</Text>
+                    <TextInput
+                      style={styles.textInput}
+                      placeholder=""
+                      placeholderTextColor="#9CA3AF"
+                      keyboardType="numeric"
+                      value={form.maintenance}
+                      onChangeText={text => setForm(f => ({ ...f, maintenance: text }))}
+                    />
+                  </View>
+
+                  {/* 5. Rent is negotiable toggle card */}
+                  <View style={styles.toggleCard}>
+                    <Text style={styles.toggleCardText}>Rent is negotiable</Text>
+                    <TouchableOpacity
+                      activeOpacity={0.8}
+                      onPress={() => setForm(f => ({ ...f, priceNegotiable: !f.priceNegotiable }))}
+                      style={[
+                        styles.toggleSwitchTrack,
+                        form.priceNegotiable ? styles.toggleSwitchTrackOn : styles.toggleSwitchTrackOff,
+                      ]}
+                    >
+                      <View
+                        style={[
+                          styles.toggleSwitchThumb,
+                          form.priceNegotiable ? styles.toggleSwitchThumbOn : styles.toggleSwitchThumbOff,
+                        ]}
+                      />
+                    </TouchableOpacity>
+                  </View>
+
+                  {/* 6. Available from */}
+                  <View style={styles.fieldGroup}>
+                    <Text style={styles.fieldLabel}>Available from</Text>
+                    <TextInput
+                      style={styles.textInput}
+                      placeholder=""
+                      placeholderTextColor="#9CA3AF"
+                      value={form.availabilityDate}
+                      onChangeText={text => setForm(f => ({ ...f, availabilityDate: text }))}
+                    />
+                  </View>
+                </>
+              ) : (
+                <>
+                  {/* Default / Sell Mode */}
+                  {/* 1. Expected price (₹) */}
+                  <View style={styles.fieldGroup}>
+                    <Text style={styles.fieldLabel}>Expected price (₹)</Text>
+                    <TextInput
+                      style={styles.textInput}
+                      placeholder=""
+                      placeholderTextColor="#9CA3AF"
+                      keyboardType="numeric"
+                      value={form.price}
+                      onChangeText={text => setForm(f => ({ ...f, price: text }))}
+                    />
+                  </View>
+
+                  {/* 2. Price is negotiable toggle card */}
+                  <View style={styles.toggleCard}>
+                    <Text style={styles.toggleCardText}>Price is negotiable</Text>
+                    <TouchableOpacity
+                      activeOpacity={0.8}
+                      onPress={() => setForm(f => ({ ...f, priceNegotiable: !f.priceNegotiable }))}
+                      style={[
+                        styles.toggleSwitchTrack,
+                        form.priceNegotiable ? styles.toggleSwitchTrackOn : styles.toggleSwitchTrackOff,
+                      ]}
+                    >
+                      <View
+                        style={[
+                          styles.toggleSwitchThumb,
+                          form.priceNegotiable ? styles.toggleSwitchThumbOn : styles.toggleSwitchThumbOff,
+                        ]}
+                      />
+                    </TouchableOpacity>
+                  </View>
+
+                  {/* 3. Available from */}
+                  <View style={styles.fieldGroup}>
+                    <Text style={styles.fieldLabel}>Available from</Text>
+                    <TextInput
+                      style={styles.textInput}
+                      placeholder=""
+                      placeholderTextColor="#9CA3AF"
+                      value={form.availabilityDate}
+                      onChangeText={text => setForm(f => ({ ...f, availabilityDate: text }))}
+                    />
+                  </View>
+                </>
+              )}
+            </View>
+          )}
+
+          {/* STEP 4 (SELL/RENT) / STEP 5 (COMMERCIAL): AMENITIES */}
+          {((mode !== 'commercial' && step === 4) || (mode === 'commercial' && step === 5)) && (
+            <View style={styles.stepFormContent}>
+              <Text style={styles.fieldLabel}>Amenities</Text>
               <View style={styles.amenityWrap}>
-                {amenityOptions.map(a => {
+                {amenitiesList.map(a => {
                   const selected = form.amenities.includes(a);
                   return (
                     <TouchableOpacity
@@ -977,66 +1891,111 @@ export default function PostPropertyScreen() {
                         }))
                       }
                       style={[styles.amenityChip, selected && styles.amenityChipSelected]}
-                      activeOpacity={0.8}
+                      activeOpacity={0.75}
                     >
                       <Text
                         style={[styles.amenityText, selected && styles.amenityTextSelected]}
                       >
                         {a}
                       </Text>
-                      {selected && <Check size={14} color="#FFFFFF" style={{ marginLeft: 6 }} />}
                     </TouchableOpacity>
                   );
                 })}
               </View>
-            </View>
-          )}
 
-          {/* STEP 5: PHOTOS */}
-          {step === 5 && (
-            <View style={styles.stepFormContent}>
-              <Text style={styles.fieldLabel}>Upload Photos</Text>
-              <Text style={styles.fieldSubLabel}>
-                High quality photos increase buyer inquiries by up to 3x.
-              </Text>
-              <View style={styles.photoUploadBox}>
-                <Camera size={36} color="#4B5563" />
-                <Text style={styles.uploadMainText}>Add Property Photos</Text>
-                <Text style={styles.uploadSubText}>Living Room, Bedrooms, Kitchen, Balcony</Text>
-                <TouchableOpacity
-                  style={styles.uploadActionBtn}
-                  activeOpacity={0.8}
-                  onPress={() => setForm(f => ({ ...f, photosCount: f.photosCount + 1 }))}
-                >
-                  <Text style={styles.uploadActionBtnText}>Select Photos ({form.photosCount} added)</Text>
-                </TouchableOpacity>
+              {/* Add another amenity */}
+              <View style={styles.addAmenitySection}>
+                <Text style={styles.fieldLabel}>Add another amenity</Text>
+                <View style={styles.addAmenityRow}>
+                  <TextInput
+                    style={styles.addAmenityInput}
+                    placeholder="Type an amenity"
+                    placeholderTextColor="#9CA3AF"
+                    value={customAmenity}
+                    onChangeText={setCustomAmenity}
+                    onSubmitEditing={handleAddAmenity}
+                    returnKeyType="done"
+                  />
+                  <TouchableOpacity
+                    style={styles.addAmenityBtn}
+                    onPress={handleAddAmenity}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.addAmenityBtnText}>Add</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
           )}
 
-          {/* STEP 6: DOCUMENTS */}
-          {step === 6 && (
+          {/* STEP 5 (SELL/RENT) / STEP 6 (COMMERCIAL): PHOTOS */}
+          {((mode !== 'commercial' && step === 5) || (mode === 'commercial' && step === 6)) && (
             <View style={styles.stepFormContent}>
-              <Text style={styles.fieldLabel}>Ownership & Verification</Text>
+              <Text style={styles.photosIntroText}>
+                Add clear photos of rooms, building exterior, bathrooms and common areas. The first photo becomes the cover.
+              </Text>
+
+              <View style={styles.photosGrid}>
+                <TouchableOpacity
+                  style={styles.addPhotosBox}
+                  activeOpacity={0.75}
+                  onPress={handleAddPhoto}
+                >
+                  <ImagePlus size={24} color="#000000" strokeWidth={1.8} />
+                  <Text style={styles.addPhotosText}>Add photos</Text>
+                </TouchableOpacity>
+
+                {form.photos.map((uri, index) => (
+                  <View key={index} style={styles.photoThumbWrap}>
+                    <Image source={{ uri }} style={styles.photoThumbImg} />
+                    <TouchableOpacity
+                      style={styles.photoRemoveBtn}
+                      onPress={() => handleRemovePhoto(index)}
+                      activeOpacity={0.8}
+                    >
+                      <X size={12} color="#FFFFFF" strokeWidth={2.5} />
+                    </TouchableOpacity>
+                    {index === 0 && (
+                      <View style={styles.photoCoverBadge}>
+                        <Text style={styles.photoCoverText}>Cover</Text>
+                      </View>
+                    )}
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
+
+          {/* STEP 6 (RENT): TENANT PREFERENCES */}
+          {mode === 'rent' && step === 6 && (
+            <View style={styles.stepFormContent}>
+              {/* 1. Preferred tenant */}
               <View style={styles.fieldGroup}>
-                <Text style={styles.fieldLabel}>Ownership Type</Text>
-                <View style={styles.pillsRow}>
-                  {['Freehold', 'Leasehold', 'Power of Attorney'].map(item => {
-                    const isSelected = form.ownership === item;
+                <Text style={styles.fieldLabel}>Preferred tenant</Text>
+                <View style={styles.optionPillsRow}>
+                  {['Family', 'Bachelors', 'Working Professionals', 'Students', 'Anyone'].map(opt => {
+                    const isSelected = form.preferredTenant.includes(opt);
                     return (
                       <TouchableOpacity
-                        key={item}
-                        onPress={() => setForm(f => ({ ...f, ownership: item }))}
-                        style={[styles.furnishPill, isSelected && styles.furnishPillSelected]}
+                        key={opt}
+                        onPress={() =>
+                          setForm(f => ({
+                            ...f,
+                            preferredTenant: isSelected
+                              ? f.preferredTenant.filter(x => x !== opt)
+                              : [...f.preferredTenant, opt],
+                          }))
+                        }
+                        style={[styles.optionPill, isSelected && styles.optionPillSelected]}
                         activeOpacity={0.8}
                       >
                         <Text
                           style={[
-                            styles.furnishText,
-                            isSelected && styles.furnishTextSelected,
+                            styles.optionPillText,
+                            isSelected && styles.optionPillTextSelected,
                           ]}
                         >
-                          {item}
+                          {opt}
                         </Text>
                       </TouchableOpacity>
                     );
@@ -1044,75 +2003,676 @@ export default function PostPropertyScreen() {
                 </View>
               </View>
 
+              {/* 2. Gender preference (if applicable) */}
               <View style={styles.fieldGroup}>
-                <Text style={styles.fieldLabel}>RERA ID (Optional)</Text>
-                <TextInput
-                  style={styles.textInput}
-                  placeholder="e.g. P02400001234"
-                  placeholderTextColor="#9CA3AF"
-                  value={form.reraId}
-                  onChangeText={text => setForm(f => ({ ...f, reraId: text }))}
-                />
+                <Text style={styles.fieldLabel}>Gender preference (if applicable)</Text>
+                <View style={styles.optionPillsRow}>
+                  {['Male', 'Female', 'Any'].map(opt => {
+                    const isSelected = form.genderPreference === opt;
+                    return (
+                      <TouchableOpacity
+                        key={opt}
+                        onPress={() => setForm(f => ({ ...f, genderPreference: isSelected ? '' : opt }))}
+                        style={[styles.optionPill, isSelected && styles.optionPillSelected]}
+                        activeOpacity={0.8}
+                      >
+                        <Text
+                          style={[
+                            styles.optionPillText,
+                            isSelected && styles.optionPillTextSelected,
+                          ]}
+                        >
+                          {opt}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
               </View>
 
-              <View style={styles.docVerifyNotice}>
-                <ShieldCheck size={24} color="#047857" />
-                <View style={{ flex: 1, marginLeft: 12 }}>
-                  <Text style={styles.docNoticeTitle}>Verified Owner Protection</Text>
-                  <Text style={styles.docNoticeSub}>
-                    Seedha Properties verifies all listings directly with municipal records to prevent spam.
-                  </Text>
+              {/* 3. Pets allowed toggle card */}
+              <View style={styles.toggleCard}>
+                <Text style={styles.toggleCardText}>Pets allowed</Text>
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={() => setForm(f => ({ ...f, petsAllowed: !f.petsAllowed }))}
+                  style={[
+                    styles.toggleSwitchTrack,
+                    form.petsAllowed ? styles.toggleSwitchTrackOn : styles.toggleSwitchTrackOff,
+                  ]}
+                >
+                  <View
+                    style={[
+                      styles.toggleSwitchThumb,
+                      form.petsAllowed ? styles.toggleSwitchThumbOn : styles.toggleSwitchThumbOff,
+                    ]}
+                  />
+                </TouchableOpacity>
+              </View>
+
+              {/* 4. Smoking allowed toggle card */}
+              <View style={styles.toggleCard}>
+                <Text style={styles.toggleCardText}>Smoking allowed</Text>
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={() => setForm(f => ({ ...f, smokingAllowed: !f.smokingAllowed }))}
+                  style={[
+                    styles.toggleSwitchTrack,
+                    form.smokingAllowed ? styles.toggleSwitchTrackOn : styles.toggleSwitchTrackOff,
+                  ]}
+                >
+                  <View
+                    style={[
+                      styles.toggleSwitchThumb,
+                      form.smokingAllowed ? styles.toggleSwitchThumbOn : styles.toggleSwitchThumbOff,
+                    ]}
+                  />
+                </TouchableOpacity>
+              </View>
+
+              {/* 5. Food preference */}
+              <View style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>Food preference</Text>
+                <View style={styles.optionPillsRow}>
+                  {['Vegetarian', 'Non-Vegetarian', 'Any'].map(opt => {
+                    const isSelected = form.foodPreference === opt;
+                    return (
+                      <TouchableOpacity
+                        key={opt}
+                        onPress={() => setForm(f => ({ ...f, foodPreference: isSelected ? '' : opt }))}
+                        style={[styles.optionPill, isSelected && styles.optionPillSelected]}
+                        activeOpacity={0.8}
+                      >
+                        <Text
+                          style={[
+                            styles.optionPillText,
+                            isSelected && styles.optionPillTextSelected,
+                          ]}
+                        >
+                          {opt}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
                 </View>
               </View>
             </View>
           )}
 
-          {/* STEP 7: REVIEW */}
-          {step === 7 && (
+          {/* STEP 6 (FLATMATE): FLATMATE PROFILE */}
+          {mode === 'flatmate' && step === 6 && (
             <View style={styles.stepFormContent}>
-              <Text style={styles.reviewHeaderTitle}>Review Listing Summary</Text>
-              <Text style={styles.reviewHeaderSub}>
-                Please check all your listing details before submitting.
-              </Text>
+              {/* 1. Your name */}
+              <View style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>Your name</Text>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder=""
+                  placeholderTextColor="#9CA3AF"
+                  value={form.flatmateName || form.ownerName}
+                  onChangeText={text =>
+                    setForm(f => ({ ...f, flatmateName: text, ownerName: text }))
+                  }
+                />
+              </View>
 
-              <View style={styles.reviewSummaryCard}>
-                <Text style={styles.reviewPropertyTitle}>
-                  {form.title || `${form.bhk ? form.bhk + ' BHK ' : ''}${form.propertyType || 'Apartment'} in ${form.locality || 'Hyderabad'}`}
+              {/* 2. Mobile number */}
+              <View style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>Mobile number</Text>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder=""
+                  placeholderTextColor="#9CA3AF"
+                  keyboardType="phone-pad"
+                  value={form.flatmateMobile || form.ownerMobile}
+                  onChangeText={text =>
+                    setForm(f => ({ ...f, flatmateMobile: text, ownerMobile: text }))
+                  }
+                />
+              </View>
+
+              {/* 3. Email */}
+              <View style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>Email</Text>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder=""
+                  placeholderTextColor="#9CA3AF"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  value={form.flatmateEmail || form.ownerEmail}
+                  onChangeText={text =>
+                    setForm(f => ({ ...f, flatmateEmail: text, ownerEmail: text }))
+                  }
+                />
+              </View>
+
+              {/* 4. Profession */}
+              <View style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>Profession</Text>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder=""
+                  placeholderTextColor="#9CA3AF"
+                  value={form.flatmateProfession}
+                  onChangeText={text => setForm(f => ({ ...f, flatmateProfession: text }))}
+                />
+              </View>
+
+              {/* 5. Gender */}
+              <View style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>Gender</Text>
+                <View style={styles.optionPillsRow}>
+                  {['Male', 'Female', 'Other'].map(gen => {
+                    const isSelected = form.flatmateGender === gen;
+                    return (
+                      <TouchableOpacity
+                        key={gen}
+                        onPress={() =>
+                          setForm(f => ({ ...f, flatmateGender: isSelected ? '' : gen }))
+                        }
+                        style={[styles.optionPill, isSelected && styles.optionPillSelected]}
+                        activeOpacity={0.8}
+                      >
+                        <Text
+                          style={[
+                            styles.optionPillText,
+                            isSelected && styles.optionPillTextSelected,
+                          ]}
+                        >
+                          {gen}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+            </View>
+          )}
+
+          {/* STEP 7 (FLATMATE): PREFERENCES */}
+          {mode === 'flatmate' && step === 7 && (
+            <View style={styles.stepFormContent}>
+              {/* 1. Preferred gender */}
+              <View style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>Preferred gender</Text>
+                <View style={styles.optionPillsRow}>
+                  {['Male', 'Female', 'Any'].map(gen => {
+                    const isSelected = form.flatmatePreferredGender === gen;
+                    return (
+                      <TouchableOpacity
+                        key={gen}
+                        onPress={() =>
+                          setForm(f => ({
+                            ...f,
+                            flatmatePreferredGender: isSelected ? '' : gen,
+                          }))
+                        }
+                        style={[styles.optionPill, isSelected && styles.optionPillSelected]}
+                        activeOpacity={0.8}
+                      >
+                        <Text
+                          style={[
+                            styles.optionPillText,
+                            isSelected && styles.optionPillTextSelected,
+                          ]}
+                        >
+                          {gen}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+
+              {/* 2. Preferred age group */}
+              <View style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>Preferred age group</Text>
+                <TouchableOpacity
+                  style={styles.selectInput}
+                  activeOpacity={0.7}
+                  onPress={() =>
+                    openPicker('Preferred age group', ageGroupOptions, form.flatmateAgeGroup, val =>
+                      setForm(f => ({ ...f, flatmateAgeGroup: val }))
+                    )
+                  }
+                >
+                  <Text
+                    style={[styles.selectText, !form.flatmateAgeGroup && styles.placeholderText]}
+                  >
+                    {form.flatmateAgeGroup || 'Select'}
+                  </Text>
+                  <ChevronDown size={18} color="#6B7280" />
+                </TouchableOpacity>
+              </View>
+
+              {/* 3. Occupation */}
+              <View style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>Occupation</Text>
+                <View style={styles.optionPillsRow}>
+                  {['Student', 'Working Professional', 'Business Person', 'Any'].map(occ => {
+                    const isSelected = form.flatmateOccupation.includes(occ);
+                    return (
+                      <TouchableOpacity
+                        key={occ}
+                        onPress={() =>
+                          setForm(f => ({
+                            ...f,
+                            flatmateOccupation: isSelected
+                              ? f.flatmateOccupation.filter(x => x !== occ)
+                              : [...f.flatmateOccupation, occ],
+                          }))
+                        }
+                        style={[styles.optionPill, isSelected && styles.optionPillSelected]}
+                        activeOpacity={0.8}
+                      >
+                        <Text
+                          style={[
+                            styles.optionPillText,
+                            isSelected && styles.optionPillTextSelected,
+                          ]}
+                        >
+                          {occ}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+
+              {/* 4. Food preference */}
+              <View style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>Food preference</Text>
+                <View style={styles.optionPillsRow}>
+                  {['Vegetarian', 'Non-Vegetarian', 'Any'].map(food => {
+                    const isSelected = form.flatmateFoodPref === food;
+                    return (
+                      <TouchableOpacity
+                        key={food}
+                        onPress={() =>
+                          setForm(f => ({
+                            ...f,
+                            flatmateFoodPref: isSelected ? '' : food,
+                          }))
+                        }
+                        style={[styles.optionPill, isSelected && styles.optionPillSelected]}
+                        activeOpacity={0.8}
+                      >
+                        <Text
+                          style={[
+                            styles.optionPillText,
+                            isSelected && styles.optionPillTextSelected,
+                          ]}
+                        >
+                          {food}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+
+              {/* 5. Smoking allowed toggle card */}
+              <View style={styles.toggleCard}>
+                <Text style={styles.toggleCardText}>Smoking allowed</Text>
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={() => setForm(f => ({ ...f, flatmateSmoking: !f.flatmateSmoking }))}
+                  style={[
+                    styles.toggleSwitchTrack,
+                    form.flatmateSmoking ? styles.toggleSwitchTrackOn : styles.toggleSwitchTrackOff,
+                  ]}
+                >
+                  <View
+                    style={[
+                      styles.toggleSwitchThumb,
+                      form.flatmateSmoking ? styles.toggleSwitchThumbOn : styles.toggleSwitchThumbOff,
+                    ]}
+                  />
+                </TouchableOpacity>
+              </View>
+
+              {/* 6. Drinking allowed toggle card */}
+              <View style={styles.toggleCard}>
+                <Text style={styles.toggleCardText}>Drinking allowed</Text>
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={() => setForm(f => ({ ...f, flatmateDrinking: !f.flatmateDrinking }))}
+                  style={[
+                    styles.toggleSwitchTrack,
+                    form.flatmateDrinking ? styles.toggleSwitchTrackOn : styles.toggleSwitchTrackOff,
+                  ]}
+                >
+                  <View
+                    style={[
+                      styles.toggleSwitchThumb,
+                      form.flatmateDrinking ? styles.toggleSwitchThumbOn : styles.toggleSwitchThumbOff,
+                    ]}
+                  />
+                </TouchableOpacity>
+              </View>
+
+              {/* 7. Pets allowed toggle card */}
+              <View style={styles.toggleCard}>
+                <Text style={styles.toggleCardText}>Pets allowed</Text>
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={() => setForm(f => ({ ...f, flatmatePets: !f.flatmatePets }))}
+                  style={[
+                    styles.toggleSwitchTrack,
+                    form.flatmatePets ? styles.toggleSwitchTrackOn : styles.toggleSwitchTrackOff,
+                  ]}
+                >
+                  <View
+                    style={[
+                      styles.toggleSwitchThumb,
+                      form.flatmatePets ? styles.toggleSwitchThumbOn : styles.toggleSwitchThumbOff,
+                    ]}
+                  />
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
+          {/* STEP 6 (SELL) / STEP 7 (RENT/COMMERCIAL): OWNER & DECLARATION */}
+          {((mode === 'sell' && step === 6) || ((mode === 'rent' || mode === 'commercial') && step === 7)) && (
+            <View style={styles.stepFormContent}>
+              {/* Top Banner Notice */}
+              <View style={styles.ownerNoticeBox}>
+                <Text style={styles.ownerNoticeText}>
+                  No documents are required on this screen. Seedha will contact the owner if verification is needed.
+                </Text>
+              </View>
+
+              {/* Owner name */}
+              <View style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>Owner name</Text>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder=""
+                  placeholderTextColor="#9CA3AF"
+                  value={form.ownerName}
+                  onChangeText={text => setForm(f => ({ ...f, ownerName: text }))}
+                />
+              </View>
+
+              {/* Owner mobile number */}
+              <View style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>Owner mobile number</Text>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder=""
+                  placeholderTextColor="#9CA3AF"
+                  keyboardType="phone-pad"
+                  value={form.ownerMobile}
+                  onChangeText={text => setForm(f => ({ ...f, ownerMobile: text }))}
+                />
+              </View>
+
+              {/* Owner email (optional) */}
+              <View style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>Owner email (optional)</Text>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder=""
+                  placeholderTextColor="#9CA3AF"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  value={form.ownerEmail}
+                  onChangeText={text => setForm(f => ({ ...f, ownerEmail: text }))}
+                />
+              </View>
+
+              {/* Ownership declaration Card */}
+              <View style={styles.whiteSectionCard}>
+                <Text style={styles.sectionCardTitle}>Ownership declaration</Text>
+                <Text style={styles.sectionCardSub}>
+                  Used as owner-declared information until Seedha verifies it
                 </Text>
 
-                <View style={styles.reviewGrid}>
-                  <View style={styles.reviewGridItem}>
-                    <Text style={styles.reviewGridLabel}>Property Type</Text>
-                    <Text style={styles.reviewGridVal}>{form.propertyType || 'Apartment'}</Text>
+                {/* 1. Posting as */}
+                <View style={styles.declarationFieldGroup}>
+                  <Text style={styles.declarationLabel}>Posting as</Text>
+                  <View style={styles.optionPillsRow}>
+                    {['Owner', 'Co-owner', 'Power of attorney', 'Builder'].map(opt => {
+                      const isSelected = form.postingAs === opt;
+                      return (
+                        <TouchableOpacity
+                          key={opt}
+                          onPress={() => setForm(f => ({ ...f, postingAs: opt }))}
+                          style={[styles.optionPill, isSelected && styles.optionPillSelected]}
+                          activeOpacity={0.8}
+                        >
+                          <Text
+                            style={[
+                              styles.optionPillText,
+                              isSelected && styles.optionPillTextSelected,
+                            ]}
+                          >
+                            {opt}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
                   </View>
-                  <View style={styles.reviewGridItem}>
-                    <Text style={styles.reviewGridLabel}>BHK</Text>
-                    <Text style={styles.reviewGridVal}>{form.bhk ? `${form.bhk} BHK` : '2 BHK'}</Text>
+                </View>
+
+                {/* 2. How was the property acquired? */}
+                <View style={styles.declarationFieldGroup}>
+                  <Text style={styles.declarationLabel}>How was the property acquired?</Text>
+                  <View style={styles.optionPillsRow}>
+                    {['Purchased', 'Inherited', 'Gifted', 'Builder allotment'].map(opt => {
+                      const isSelected = form.propertyAcquired === opt;
+                      return (
+                        <TouchableOpacity
+                          key={opt}
+                          onPress={() => setForm(f => ({ ...f, propertyAcquired: opt }))}
+                          style={[styles.optionPill, isSelected && styles.optionPillSelected]}
+                          activeOpacity={0.8}
+                        >
+                          <Text
+                            style={[
+                              styles.optionPillText,
+                              isSelected && styles.optionPillTextSelected,
+                            ]}
+                          >
+                            {opt}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
                   </View>
-                  <View style={styles.reviewGridItem}>
-                    <Text style={styles.reviewGridLabel}>Expected Price</Text>
-                    <Text style={styles.reviewGridVal}>{form.price ? `₹${form.price}` : '₹85 Lakhs'}</Text>
+                </View>
+
+                {/* 3. Loan on property */}
+                <View style={styles.declarationFieldGroup}>
+                  <Text style={styles.declarationLabel}>Loan on property</Text>
+                  <View style={styles.optionPillsRow}>
+                    {['No loan', 'Loan active', 'Loan closed'].map(opt => {
+                      const isSelected = form.loanOnProperty === opt;
+                      return (
+                        <TouchableOpacity
+                          key={opt}
+                          onPress={() => setForm(f => ({ ...f, loanOnProperty: opt }))}
+                          style={[styles.optionPill, isSelected && styles.optionPillSelected]}
+                          activeOpacity={0.8}
+                        >
+                          <Text
+                            style={[
+                              styles.optionPillText,
+                              isSelected && styles.optionPillTextSelected,
+                            ]}
+                          >
+                            {opt}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
                   </View>
-                  <View style={styles.reviewGridItem}>
-                    <Text style={styles.reviewGridLabel}>Carpet Area</Text>
-                    <Text style={styles.reviewGridVal}>{form.carpetArea ? `${form.carpetArea} sq.ft` : '1,200 sq.ft'}</Text>
+                </View>
+
+                {/* 4. Property tax paid? */}
+                <View style={styles.declarationFieldGroup}>
+                  <Text style={styles.declarationLabel}>Property tax paid?</Text>
+                  <View style={styles.optionPillsRow}>
+                    {['Yes', 'No'].map(opt => {
+                      const isSelected = form.propertyTaxPaid === opt;
+                      return (
+                        <TouchableOpacity
+                          key={opt}
+                          onPress={() => setForm(f => ({ ...f, propertyTaxPaid: opt }))}
+                          style={[styles.optionPill, isSelected && styles.optionPillSelected]}
+                          activeOpacity={0.8}
+                        >
+                          <Text
+                            style={[
+                              styles.optionPillText,
+                              isSelected && styles.optionPillTextSelected,
+                            ]}
+                          >
+                            {opt}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
                   </View>
-                  <View style={styles.reviewGridItem}>
-                    <Text style={styles.reviewGridLabel}>Furnishing</Text>
-                    <Text style={styles.reviewGridVal}>{form.furnishing || 'Semi-Furnished'}</Text>
+                </View>
+
+                {/* 5. Pending dues? */}
+                <View style={styles.declarationFieldGroup}>
+                  <Text style={styles.declarationLabel}>Pending dues?</Text>
+                  <View style={styles.optionPillsRow}>
+                    {['None', 'Yes'].map(opt => {
+                      const isSelected = form.pendingDues === opt;
+                      return (
+                        <TouchableOpacity
+                          key={opt}
+                          onPress={() => setForm(f => ({ ...f, pendingDues: opt }))}
+                          style={[styles.optionPill, isSelected && styles.optionPillSelected]}
+                          activeOpacity={0.8}
+                        >
+                          <Text
+                            style={[
+                              styles.optionPillText,
+                              isSelected && styles.optionPillTextSelected,
+                            ]}
+                          >
+                            {opt}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
                   </View>
-                  <View style={styles.reviewGridItem}>
-                    <Text style={styles.reviewGridLabel}>Condition</Text>
-                    <Text style={styles.reviewGridVal}>{form.condition || 'Ready to move'}</Text>
+                </View>
+
+                {/* 6. Court case on property? */}
+                <View style={styles.declarationFieldGroup}>
+                  <Text style={styles.declarationLabel}>Court case on property?</Text>
+                  <View style={styles.optionPillsRow}>
+                    {['None', 'Yes'].map(opt => {
+                      const isSelected = form.courtCase === opt;
+                      return (
+                        <TouchableOpacity
+                          key={opt}
+                          onPress={() => setForm(f => ({ ...f, courtCase: opt }))}
+                          style={[styles.optionPill, isSelected && styles.optionPillSelected]}
+                          activeOpacity={0.8}
+                        >
+                          <Text
+                            style={[
+                              styles.optionPillText,
+                              isSelected && styles.optionPillTextSelected,
+                            ]}
+                          >
+                            {opt}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
                   </View>
-                  <View style={styles.reviewGridItem}>
-                    <Text style={styles.reviewGridLabel}>Facing</Text>
-                    <Text style={styles.reviewGridVal}>{form.facing || 'East'}</Text>
+                </View>
+              </View>
+            </View>
+          )}
+
+          {/* STEP 7 (SELL) / STEP 8 (RENT/COMMERCIAL/FLATMATE): PREVIEW */}
+          {((mode === 'sell' && step === 7) || ((mode === 'rent' || mode === 'commercial' || mode === 'flatmate') && step === 8)) && (
+            <View style={styles.stepFormContent}>
+              {/* Top Listing Card Preview */}
+              <View style={styles.previewTopCard}>
+                {form.photos.length > 0 ? (
+                  <Image source={{ uri: form.photos[0] }} style={styles.previewCardImg} />
+                ) : (
+                  <View style={styles.previewImgPlaceholder}>
+                    <Camera size={34} color="#000000" strokeWidth={1.8} />
                   </View>
-                  <View style={styles.reviewGridItem}>
-                    <Text style={styles.reviewGridLabel}>Location</Text>
-                    <Text style={styles.reviewGridVal}>{form.locality || 'Hyderabad'}</Text>
+                )}
+                <View style={styles.previewCardBody}>
+                  <View style={styles.previewBadgePill}>
+                    <Text style={styles.previewBadgeText}>Post to {modeLabel}</Text>
                   </View>
+                  <Text style={styles.previewTitleText}>
+                    {form.title || 'Untitled listing'}
+                  </Text>
+                  <Text style={styles.previewLocalityText}>
+                    {form.locality || form.city || 'Hyderabad'}
+                  </Text>
+                  <Text style={styles.previewPriceText}>
+                    {form.price ? `₹${form.price}` : 'Price not added'}
+                  </Text>
+                </View>
+              </View>
+
+              {/* All listing details Card */}
+              <View style={styles.allDetailsCard}>
+                <Text style={styles.allDetailsTitle}>All listing details</Text>
+                <Text style={styles.allDetailsSub}>Review before you submit</Text>
+
+                <View style={styles.detailsListWrap}>
+                  {(mode === 'rent'
+                    ? [
+                        { label: 'City', value: form.city || 'Hyderabad' },
+                        { label: 'Maintenance Mode', value: form.maintenanceMode || 'Separate' },
+                        { label: 'Visit Days', value: form.availableDays || 'Any day' },
+                        { label: 'Property Position', value: form.propertyPosition || 'Main road property' },
+                        { label: 'Owner Role', value: form.postingAs || 'Owner' },
+                        { label: 'Acquired', value: form.propertyAcquired || 'Purchased' },
+                        { label: 'Room Type', value: 'Private Room' },
+                        { label: 'Ac Type', value: 'Non-AC' },
+                        { label: 'Pg Available For', value: 'Anyone' },
+                        { label: 'Property Offer', value: 'Only rent' },
+                        { label: 'Photos', value: String(form.photos.length) },
+                      ]
+                    : [
+                        { label: 'City', value: form.city || 'Hyderabad' },
+                        { label: 'Negotiable', value: form.priceNegotiable ? 'Yes' : 'No' },
+                        { label: 'Maintenance Mode', value: form.maintenanceMode || 'Separate' },
+                        { label: 'Visit Days', value: form.availableDays || 'Any day' },
+                        { label: 'Property Position', value: form.propertyPosition || 'Main road property' },
+                        { label: 'Owner Role', value: form.postingAs || 'Owner' },
+                        { label: 'Acquired', value: form.propertyAcquired || 'Purchased' },
+                        { label: 'Property Loan', value: form.loanOnProperty || 'No loan' },
+                        { label: 'Property Tax', value: form.propertyTaxPaid || 'Yes' },
+                        { label: 'Property Dues', value: form.pendingDues || 'None' },
+                        { label: 'Litigation', value: form.courtCase || 'None' },
+                        { label: 'Room Type', value: 'Private Room' },
+                        { label: 'Ac Type', value: 'Non-AC' },
+                        { label: 'Pg Available For', value: 'Anyone' },
+                        { label: 'Property Offer', value: 'Only rent' },
+                        { label: 'Photos', value: String(form.photos.length) },
+                      ]
+                  ).map((row, idx, arr) => (
+                    <View
+                      key={row.label}
+                      style={[
+                        styles.detailRow,
+                        idx === arr.length - 1 && styles.detailRowLast,
+                      ]}
+                    >
+                      <Text style={styles.detailRowLabel}>{row.label}</Text>
+                      <Text style={styles.detailRowVal}>{row.value}</Text>
+                    </View>
+                  ))}
                 </View>
               </View>
             </View>
@@ -1121,22 +2681,24 @@ export default function PostPropertyScreen() {
 
         {/* Bottom Action Footer matching design */}
         <View style={styles.footerRow}>
-          <TouchableOpacity
-            style={styles.draftButton}
-            activeOpacity={0.8}
-            onPress={() => {
-              pop();
-            }}
-          >
-            <Text style={styles.draftButtonText}>Save draft</Text>
-          </TouchableOpacity>
+          {step < totalSteps && (
+            <TouchableOpacity
+              style={styles.draftButton}
+              activeOpacity={0.8}
+              onPress={() => {
+                pop();
+              }}
+            >
+              <Text style={styles.draftButtonText}>Save draft</Text>
+            </TouchableOpacity>
+          )}
 
           <TouchableOpacity
-            style={styles.continueButton}
+            style={[styles.continueButton, step === totalSteps && styles.fullSubmitButton]}
             activeOpacity={0.9}
             disabled={loading}
             onPress={() => {
-              if (step < 7) {
+              if (step < totalSteps) {
                 setStep(s => (s + 1) as Step);
               } else {
                 handleSubmit();
@@ -1147,7 +2709,7 @@ export default function PostPropertyScreen() {
               <ActivityIndicator color="#FFFFFF" />
             ) : (
               <Text style={styles.continueButtonText}>
-                {step < 7 ? 'Continue' : 'Submit Property'}
+                {step < totalSteps ? 'Continue' : 'Submit property'}
               </Text>
             )}
           </TouchableOpacity>
@@ -1431,6 +2993,53 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 1,
   },
+  toggleCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    height: 48,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 14,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  toggleCardText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#111827',
+  },
+  toggleSwitchTrack: {
+    width: 46,
+    height: 26,
+    borderRadius: 13,
+    padding: 3,
+    justifyContent: 'center',
+  },
+  toggleSwitchTrackOn: {
+    backgroundColor: '#000000',
+  },
+  toggleSwitchTrackOff: {
+    backgroundColor: '#E5E7EB',
+  },
+  toggleSwitchThumb: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#FFFFFF',
+  },
+  toggleSwitchThumbOn: {
+    alignSelf: 'flex-end',
+  },
+  toggleSwitchThumbOff: {
+    alignSelf: 'flex-start',
+  },
   selectInput: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1648,140 +3257,334 @@ const styles = StyleSheet.create({
   amenityWrap: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
-    marginTop: 6,
+    gap: 10,
+    marginTop: 8,
   },
   amenityChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 14,
+    height: 38,
+    borderRadius: 19,
+    paddingHorizontal: 18,
     backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
     borderWidth: 1,
     borderColor: '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   amenityChipSelected: {
     backgroundColor: '#000000',
     borderColor: '#000000',
   },
   amenityText: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '500',
-    color: '#374151',
+    color: '#6B7280',
   },
   amenityTextSelected: {
     color: '#FFFFFF',
     fontWeight: '600',
   },
-  photoUploadBox: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    borderWidth: 1.5,
-    borderColor: '#D1D5DB',
-    borderStyle: 'dashed',
-    padding: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 8,
+  addAmenitySection: {
+    marginTop: 24,
   },
-  uploadMainText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#111827',
-    marginTop: 10,
-  },
-  uploadSubText: {
-    fontSize: 12,
-    color: '#6B7280',
-    marginTop: 4,
-    textAlign: 'center',
-  },
-  uploadActionBtn: {
-    marginTop: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 12,
-    backgroundColor: '#F3F4F6',
-  },
-  uploadActionBtnText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#111827',
-  },
-  docVerifyNotice: {
+  addAmenityRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ECFDF5',
-    borderRadius: 14,
-    padding: 14,
-    marginTop: 16,
-    borderWidth: 1,
-    borderColor: '#A7F3D0',
+    gap: 10,
   },
-  docNoticeTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#065F46',
-  },
-  docNoticeSub: {
-    fontSize: 12,
-    color: '#047857',
-    marginTop: 2,
-    lineHeight: 16,
-  },
-  reviewHeaderTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: 4,
-  },
-  reviewHeaderSub: {
-    fontSize: 13,
-    color: '#6B7280',
-    marginBottom: 16,
-  },
-  reviewSummaryCard: {
+  addAmenityInput: {
+    flex: 1,
+    height: 48,
     backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    padding: 18,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    fontSize: 14,
+    color: '#111827',
     borderWidth: 1,
     borderColor: '#E5E7EB',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
     elevation: 2,
   },
-  reviewPropertyTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#111827',
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
-    marginBottom: 12,
+  addAmenityBtn: {
+    height: 48,
+    paddingHorizontal: 20,
+    backgroundColor: '#000000',
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    elevation: 2,
   },
-  reviewGrid: {
+  addAmenityBtnText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  photosIntroText: {
+    fontSize: 12,
+    lineHeight: 20,
+    color: '#6B7280',
+    marginTop: 4,
+  },
+  photosGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 12,
+    marginTop: 16,
   },
-  reviewGridItem: {
-    width: '47%',
-    marginBottom: 6,
+  addPhotosBox: {
+    width: 111,
+    height: 111,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: '#000000',
+    backgroundColor: '#ECEEF5',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
   },
-  reviewGridLabel: {
-    fontSize: 11,
+  addPhotosText: {
+    fontSize: 10,
+    lineHeight: 15,
+    color: '#000000',
+    textAlign: 'center',
+    fontWeight: '500',
+  },
+  photoThumbWrap: {
+    width: 111,
+    height: 111,
+    borderRadius: 16,
+    overflow: 'hidden',
+    position: 'relative',
+    backgroundColor: '#E5E7EB',
+  },
+  photoThumbImg: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 16,
+  },
+  photoRemoveBtn: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: 'rgba(0,0,0,0.65)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  photoCoverBadge: {
+    position: 'absolute',
+    bottom: 6,
+    left: 6,
+    backgroundColor: '#000000',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  photoCoverText: {
+    color: '#FFFFFF',
+    fontSize: 9,
+    fontWeight: '700',
+  },
+  ownerNoticeBox: {
+    backgroundColor: '#E4E7F0',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    marginBottom: 8,
+  },
+  ownerNoticeText: {
+    fontSize: 12,
+    lineHeight: 18,
+    color: '#6B7280',
+  },
+  declarationFieldGroup: {
+    marginTop: 16,
+  },
+  declarationLabel: {
+    fontSize: 13,
     fontWeight: '500',
     color: '#6B7280',
-    textTransform: 'uppercase',
+    marginBottom: 8,
   },
-  reviewGridVal: {
-    fontSize: 14,
+  optionPillsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  purposeHeading: {
+    fontSize: 16,
     fontWeight: '600',
     color: '#111827',
+    marginBottom: 14,
+    marginTop: 4,
+  },
+  purposeCardsWrap: {
+    gap: 12,
+  },
+  purposeCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    paddingHorizontal: 20,
+    paddingVertical: 18,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.02,
+    elevation: 1,
+  },
+  purposeCardSelected: {
+    borderColor: '#E5E7EB',
+  },
+  purposeCheckCircle: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: '#000000',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 14,
+  },
+  purposeUncheckCircle: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 1.5,
+    borderColor: '#D1D5DB',
+    backgroundColor: '#FFFFFF',
+    marginRight: 14,
+  },
+  purposeTextCol: {
+    flex: 1,
+  },
+  purposeTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#111827',
+  },
+  purposeSub: {
+    fontSize: 13,
+    color: '#6B7280',
     marginTop: 2,
+  },
+  previewTopCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
+    marginBottom: 16,
+  },
+  previewImgPlaceholder: {
+    height: 180,
+    backgroundColor: '#ECEEF5',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  previewCardImg: {
+    width: '100%',
+    height: 180,
+    resizeMode: 'cover',
+  },
+  previewCardBody: {
+    padding: 20,
+  },
+  previewBadgePill: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#F3F4F6',
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 999,
+  },
+  previewBadgeText: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: '#374151',
+  },
+  previewTitleText: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#111827',
+    marginTop: 10,
+  },
+  previewLocalityText: {
+    fontSize: 13,
+    color: '#6B7280',
+    marginTop: 4,
+  },
+  previewPriceText: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#111827',
+    marginTop: 10,
+  },
+  allDetailsCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    padding: 20,
+    marginBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  allDetailsTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  allDetailsSub: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginTop: 2,
+    marginBottom: 8,
+  },
+  detailsListWrap: {
+    marginTop: 4,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+  },
+  detailRowLast: {
+    borderBottomWidth: 0,
+  },
+  detailRowLabel: {
+    fontSize: 13,
+    color: '#6B7280',
+    fontWeight: '400',
+  },
+  detailRowVal: {
+    fontSize: 13,
+    color: '#111827',
+    fontWeight: '500',
+  },
+  fullSubmitButton: {
+    flex: 1,
+    height: 50,
   },
   footerRow: {
     flexDirection: 'row',
@@ -1879,46 +3682,281 @@ const styles = StyleSheet.create({
     color: '#000000',
     fontWeight: '700',
   },
-  successContainer: {
+  submittedContainer: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 24,
     backgroundColor: '#ECEEF5',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
   },
-  successBadgeCircle: {
-    width: 76,
-    height: 76,
-    borderRadius: 38,
-    backgroundColor: '#D1FAE5',
+  submittedContent: {
+    alignItems: 'center',
+    width: '100%',
+  },
+  submittedSuccessCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#DCFCE7',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 16,
+    marginBottom: 4,
   },
-  successTitle: {
-    fontSize: 22,
-    fontWeight: '800',
+  submittedTitle: {
+    fontSize: 24,
+    fontWeight: '700',
     color: '#111827',
-    marginBottom: 8,
-  },
-  successSubtitle: {
-    fontSize: 14,
-    color: '#4B5563',
+    marginTop: 20,
     textAlign: 'center',
-    lineHeight: 20,
   },
-  backHomeButton: {
-    marginTop: 24,
+  submittedSubtitle: {
+    fontSize: 14,
+    lineHeight: 22,
+    color: '#6B7280',
+    textAlign: 'center',
+    marginTop: 8,
+    paddingHorizontal: 12,
+  },
+  submittedStatusCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    paddingHorizontal: 20,
+    paddingVertical: 22,
     width: '100%',
-    height: 50,
-    borderRadius: 16,
+    marginTop: 28,
+    gap: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  statusStepRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+  },
+  statusStepCircleActive: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     backgroundColor: '#000000',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  backHomeButtonText: {
-    fontSize: 16,
-    fontWeight: '700',
+  statusStepNumActive: {
     color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  statusStepCirclePending: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: '#EBF2FA',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  statusStepNumPending: {
+    color: '#64748B',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  statusStepTextCol: {
+    flex: 1,
+  },
+  statusStepTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#111827',
+  },
+  statusStepSub: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginTop: 2,
+  },
+  submittedDoneBtn: {
+    marginTop: 24,
+    width: '100%',
+    height: 52,
+    borderRadius: 16,
+    backgroundColor: '#000000',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    elevation: 2,
+  },
+  submittedDoneBtnText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  occupancyGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    rowGap: 12,
+  },
+  occupancyCard: {
+    width: '48%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    paddingVertical: 18,
+    paddingHorizontal: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.02,
+    shadowRadius: 3,
+    elevation: 1,
+  },
+  occupancyCardSelected: {
+    borderColor: '#000000',
+    backgroundColor: '#000000',
+  },
+  occupancyTitleSelected: {
+    color: '#FFFFFF',
+  },
+  occupancySubSelected: {
+    color: '#9CA3AF',
+  },
+  bedCapsuleSelected: {
+    borderColor: '#9CA3AF',
+    backgroundColor: '#000000',
+  },
+  bedCapsulesRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    height: 22,
+    marginBottom: 8,
+  },
+  bedCapsule: {
+    width: 9,
+    height: 20,
+    borderRadius: 4.5,
+    borderWidth: 1.5,
+    borderColor: '#94A3B8',
+    backgroundColor: '#FFFFFF',
+  },
+  occupancyTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#111827',
+    textAlign: 'center',
+  },
+  occupancySub: {
+    fontSize: 11,
+    color: '#6B7280',
+    marginTop: 3,
+    textAlign: 'center',
+  },
+  noticeBanner: {
+    backgroundColor: '#FEF9C3',
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+  },
+  noticeBannerText: {
+    fontSize: 12,
+    lineHeight: 18,
+    color: '#854D0E',
+    fontWeight: '400',
+  },
+  roomTabsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 16,
+  },
+  roomTabPill: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 999,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.02,
+    elevation: 1,
+  },
+  roomTabPillActive: {
+    backgroundColor: '#000000',
+    borderColor: '#000000',
+  },
+  roomTabPillText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#374151',
+  },
+  roomTabPillTextActive: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+  },
+  roomCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 22,
+    padding: 18,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
+    elevation: 1,
+    marginBottom: 20,
+  },
+  roomCardTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#111827',
+  },
+  roomCardSub: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginTop: 3,
+    marginBottom: 14,
+  },
+  roomFieldGroup: {
+    marginTop: 14,
+  },
+  roomFieldLabel: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#4B5563',
+    marginBottom: 8,
+  },
+  roomTextInput: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    height: 48,
+    fontSize: 14,
+    color: '#111827',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  roomToggleCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    height: 48,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    marginTop: 12,
+  },
+  roomToggleText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#111827',
   },
 });

@@ -8,8 +8,8 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "tunnel": "expo start --tunnel",
-    "dev:tunnel": "expo start --tunnel",
+    "tunnel": "expo start --tunnel ngrok",
+    "dev:tunnel": "expo start --tunnel ngrok",
     "seed": "node scripts/seedAuth.js"
   },
   "dependencies": {
