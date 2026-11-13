@@ -29,6 +29,8 @@ import {
   Camera,
   FileText,
   ShieldCheck,
+  LocateFixed,
+  MapPin,
 } from 'lucide-react-native';
 import { useApp } from '../context/AppContext';
 import type { AdminCategory } from '../types';
@@ -169,9 +171,15 @@ export default function PostPropertyScreen() {
 
     // Step 2 - Location
     locality: '',
+    streetArea: '',
     society: '',
     city: 'Hyderabad',
     landmark: '',
+    mapPinSet: false,
+    propertyPosition: 'Main road property',
+    availableDays: 'Any day',
+    availableFrom: '',
+    availableUntil: '',
 
     // Step 3 - Pricing
     price: '',
@@ -272,6 +280,11 @@ export default function PostPropertyScreen() {
           condition: form.condition,
           propertyAge: form.propertyAge,
           parking: form.parking,
+          streetArea: form.streetArea,
+          propertyPosition: form.propertyPosition,
+          availableDays: form.availableDays,
+          availableFrom: form.availableFrom,
+          availableUntil: form.availableUntil,
         },
       });
     }
@@ -689,45 +702,203 @@ export default function PostPropertyScreen() {
           {/* STEP 2: LOCATION */}
           {step === 2 && (
             <View style={styles.stepFormContent}>
+              {/* Use current location button */}
+              <TouchableOpacity
+                style={styles.useLocationBtn}
+                activeOpacity={0.75}
+                onPress={() => {
+                  setForm(f => ({
+                    ...f,
+                    city: 'Hyderabad',
+                    locality: f.locality || 'Hitec City',
+                  }));
+                }}
+              >
+                <LocateFixed size={18} color="#111827" strokeWidth={2.2} />
+                <Text style={styles.useLocationText}>Use current location</Text>
+              </TouchableOpacity>
+
+              {/* City & Locality (2 columns) */}
+              <View style={styles.twoColRow}>
+                <View style={styles.colHalf}>
+                  <Text style={styles.fieldLabel}>City</Text>
+                  <TextInput
+                    style={styles.textInput}
+                    placeholder="Hyderabad"
+                    placeholderTextColor="#9CA3AF"
+                    value={form.city}
+                    onChangeText={text => setForm(f => ({ ...f, city: text }))}
+                  />
+                </View>
+                <View style={styles.colHalf}>
+                  <Text style={styles.fieldLabel}>Locality</Text>
+                  <TextInput
+                    style={styles.textInput}
+                    placeholder="Area / neighbourhood"
+                    placeholderTextColor="#9CA3AF"
+                    value={form.locality}
+                    onChangeText={text => setForm(f => ({ ...f, locality: text }))}
+                  />
+                </View>
+              </View>
+
+              {/* Street / Area */}
               <View style={styles.fieldGroup}>
-                <Text style={styles.fieldLabel}>Locality / Area</Text>
+                <Text style={styles.fieldLabel}>Street / Area</Text>
                 <TextInput
                   style={styles.textInput}
-                  placeholder="e.g. Madhapur, Kondapur, Gachibowli"
+                  placeholder=""
                   placeholderTextColor="#9CA3AF"
-                  value={form.locality}
-                  onChangeText={text => setForm(f => ({ ...f, locality: text }))}
+                  value={form.streetArea}
+                  onChangeText={text => setForm(f => ({ ...f, streetArea: text }))}
                 />
               </View>
+
+              {/* Landmark (optional) */}
               <View style={styles.fieldGroup}>
-                <Text style={styles.fieldLabel}>Society / Project / Building Name</Text>
+                <Text style={styles.fieldLabel}>Landmark (optional)</Text>
                 <TextInput
                   style={styles.textInput}
-                  placeholder="e.g. My Home Bhooja, Rainbow Vistas"
-                  placeholderTextColor="#9CA3AF"
-                  value={form.society}
-                  onChangeText={text => setForm(f => ({ ...f, society: text }))}
-                />
-              </View>
-              <View style={styles.fieldGroup}>
-                <Text style={styles.fieldLabel}>City</Text>
-                <TextInput
-                  style={styles.textInput}
-                  placeholder="Hyderabad"
-                  placeholderTextColor="#9CA3AF"
-                  value={form.city}
-                  onChangeText={text => setForm(f => ({ ...f, city: text }))}
-                />
-              </View>
-              <View style={styles.fieldGroup}>
-                <Text style={styles.fieldLabel}>Landmark / Street (Optional)</Text>
-                <TextInput
-                  style={styles.textInput}
-                  placeholder="Near Metro Station or Tech Park"
+                  placeholder=""
                   placeholderTextColor="#9CA3AF"
                   value={form.landmark}
                   onChangeText={text => setForm(f => ({ ...f, landmark: text }))}
                 />
+              </View>
+
+              {/* Google Maps location card */}
+              <View style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>Google Maps location</Text>
+                <View style={styles.mapLocationCard}>
+                  <Svg style={StyleSheet.absoluteFill} width="100%" height="100%">
+                    <Defs>
+                      <LinearGradient id="mapCardGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <Stop offset="0%" stopColor="#E0F2FE" />
+                        <Stop offset="100%" stopColor="#DCFCE7" />
+                      </LinearGradient>
+                    </Defs>
+                    <Rect width="100%" height="100%" rx={20} fill="url(#mapCardGrad)" />
+                  </Svg>
+                  <View style={styles.mapCardContent}>
+                    <MapPin size={26} color="#000000" strokeWidth={2} />
+                    <Text style={styles.mapCardText}>Drop a pin for the exact location</Text>
+                    <TouchableOpacity
+                      style={styles.setPinBtn}
+                      activeOpacity={0.85}
+                      onPress={() => setForm(f => ({ ...f, mapPinSet: !f.mapPinSet }))}
+                    >
+                      <Text style={styles.setPinBtnText}>
+                        {form.mapPinSet ? 'Map pin set ✓' : 'Set map pin'}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+
+              {/* Property position card */}
+              <View style={styles.whiteSectionCard}>
+                <Text style={styles.sectionCardTitle}>Property position</Text>
+                <Text style={styles.sectionCardSub}>Tell users how the property is positioned</Text>
+                <Text style={styles.sectionCardLabel}>Position</Text>
+                <View style={styles.positionPillsWrap}>
+                  <View style={styles.positionPillsRow}>
+                    {['Main road property', 'Corner property'].map(pos => {
+                      const isSelected = form.propertyPosition === pos;
+                      return (
+                        <TouchableOpacity
+                          key={pos}
+                          onPress={() => setForm(f => ({ ...f, propertyPosition: pos }))}
+                          style={[styles.optionPill, isSelected && styles.optionPillSelected]}
+                          activeOpacity={0.8}
+                        >
+                          <Text
+                            style={[
+                              styles.optionPillText,
+                              isSelected && styles.optionPillTextSelected,
+                            ]}
+                          >
+                            {pos}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                  <View style={styles.positionPillsRow}>
+                    {['Main road & corner property'].map(pos => {
+                      const isSelected = form.propertyPosition === pos;
+                      return (
+                        <TouchableOpacity
+                          key={pos}
+                          onPress={() => setForm(f => ({ ...f, propertyPosition: pos }))}
+                          style={[styles.optionPill, isSelected && styles.optionPillSelected]}
+                          activeOpacity={0.8}
+                        >
+                          <Text
+                            style={[
+                              styles.optionPillText,
+                              isSelected && styles.optionPillTextSelected,
+                            ]}
+                          >
+                            {pos}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </View>
+              </View>
+
+              {/* Visit availability card */}
+              <View style={styles.whiteSectionCard}>
+                <Text style={styles.sectionCardTitle}>Visit availability</Text>
+                <Text style={styles.sectionCardSub}>When can interested users visit the property?</Text>
+                <Text style={styles.sectionCardLabel}>Available days</Text>
+                <View style={styles.positionPillsRow}>
+                  {['Everyday', 'Weekends', 'Any day'].map(day => {
+                    const isSelected = form.availableDays === day;
+                    return (
+                      <TouchableOpacity
+                        key={day}
+                        onPress={() => setForm(f => ({ ...f, availableDays: day }))}
+                        style={[styles.optionPill, isSelected && styles.optionPillSelected]}
+                        activeOpacity={0.8}
+                      >
+                        <Text
+                          style={[
+                            styles.optionPillText,
+                            isSelected && styles.optionPillTextSelected,
+                          ]}
+                        >
+                          {day}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+
+                {/* Available from & Available until (2 columns) */}
+                <View style={[styles.twoColRow, { marginTop: 16 }]}>
+                  <View style={styles.colHalf}>
+                    <Text style={[styles.fieldLabel, { fontSize: 12, marginBottom: 6 }]}>Available from</Text>
+                    <TextInput
+                      style={styles.textInput}
+                      placeholder=""
+                      placeholderTextColor="#9CA3AF"
+                      value={form.availableFrom}
+                      onChangeText={text => setForm(f => ({ ...f, availableFrom: text }))}
+                    />
+                  </View>
+                  <View style={styles.colHalf}>
+                    <Text style={[styles.fieldLabel, { fontSize: 12, marginBottom: 6 }]}>Available until</Text>
+                    <TextInput
+                      style={styles.textInput}
+                      placeholder=""
+                      placeholderTextColor="#9CA3AF"
+                      value={form.availableUntil}
+                      onChangeText={text => setForm(f => ({ ...f, availableUntil: text }))}
+                    />
+                  </View>
+                </View>
               </View>
             </View>
           )}
@@ -1352,6 +1523,125 @@ const styles = StyleSheet.create({
     color: '#374151',
   },
   furnishTextSelected: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+  },
+  useLocationBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    height: 48,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    gap: 8,
+    marginBottom: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  useLocationText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#111827',
+  },
+  mapLocationCard: {
+    height: 146,
+    borderRadius: 20,
+    overflow: 'hidden',
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 2,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.6)',
+  },
+  mapCardContent: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 2,
+  },
+  mapCardText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#111827',
+    marginTop: 8,
+    marginBottom: 12,
+  },
+  setPinBtn: {
+    backgroundColor: '#000000',
+    paddingHorizontal: 22,
+    paddingVertical: 9,
+    borderRadius: 999,
+  },
+  setPinBtnText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  whiteSectionCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 16,
+    marginTop: 14,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  sectionCardTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  sectionCardSub: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginTop: 2,
+    marginBottom: 14,
+  },
+  sectionCardLabel: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#6B7280',
+    marginBottom: 10,
+  },
+  positionPillsWrap: {
+    gap: 8,
+  },
+  positionPillsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  optionPill: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 999,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.02,
+    elevation: 1,
+  },
+  optionPillSelected: {
+    backgroundColor: '#000000',
+    borderColor: '#000000',
+  },
+  optionPillText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#374151',
+  },
+  optionPillTextSelected: {
     color: '#FFFFFF',
     fontWeight: '600',
   },
